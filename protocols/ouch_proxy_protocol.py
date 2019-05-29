@@ -1,7 +1,7 @@
 from twisted.internet import protocol, reactor
-from hft.incoming_message import IncomingOuchMessage
-from .utility import incoming_message_defaults
-from hft.exchange import OUCH
+from high_frequency_trading.hft.incoming_message import IncomingOuchMessage
+from financial_market_simulator.utility import incoming_message_defaults
+from high_frequency_trading.hft.exchange import OUCH
 import logging
 
 logging.basicConfig(level=logging.DEBUG)

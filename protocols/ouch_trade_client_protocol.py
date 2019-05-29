@@ -1,7 +1,7 @@
-from hft.exchange import OUCH
+from high_frequency_trading.hft.exchange import OUCH
 from twisted.internet.protocol import ClientFactory
-from hft.incoming_message import IncomingOuchMessage
-from .utility import incoming_message_defaults
+from high_frequency_trading.hft.incoming_message import IncomingOuchMessage
+from financial_market_simulator.utility import incoming_message_defaults
 import logging
 
 log = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ class OUCHClient(OUCH):
         self.trader = trader
 
     def handle_incoming_data(self):
-        original_msg = self.buffer
+        original_msg = bytes(self.buffer)
         msg = IncomingOuchMessage(
             original_msg, **incoming_message_defaults)
         self.trader.handle_OUCH(msg)

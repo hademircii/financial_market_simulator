@@ -1,10 +1,11 @@
 from twisted.internet import reactor
-from hft.incoming_message import IncomingOuchMessage
-from hft.market import BaseMarket
-from hft.event import Event
-from hft.exchange import OUCHConnectionFactory
-from .protocols.ouch_proxy_protocol import ProxyOuchServerFactory, ProxyOuchClientFactory
-from .protocols.json_line_protocol import JSONLineServerFactory
+from high_frequency_trading.hft.incoming_message import IncomingOuchMessage
+from high_frequency_trading.hft.market import BaseMarket
+from high_frequency_trading.hft.event import Event
+from high_frequency_trading.hft.exchange import OUCHConnectionFactory
+from financial_market_simulator.protocols.ouch_proxy_protocol import (
+    ProxyOuchServerFactory, ProxyOuchClientFactory)
+from financial_market_simulator.protocols.json_line_protocol import JSONLineServerFactory
 from itertools import count
 import json
 import logging
