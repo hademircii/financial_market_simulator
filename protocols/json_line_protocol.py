@@ -57,6 +57,7 @@ class JSONLineServerFactory(protocol.ServerFactory):
     def __init__(self, market):
         super()
         self.market = market
+        self.market.json_server_factory = self
         self.users = {}
     
     def buildProtocol(self, addr):

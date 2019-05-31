@@ -20,6 +20,9 @@ def generate_random_test_orders(num_orders, session_duration):
             'time_in_force': choice([10, 15, 20])
             } for o in range(50))
 
+def extract_firm_from_message(message):
+    if hasattr(message, 'order_token'):
+        return message.order_token[:4]
 
 class MockWSMessage(IncomingWSMessage):
 

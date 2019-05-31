@@ -1,4 +1,3 @@
-from twisted.internet import reactor
 from primitives.base_market_agent import BaseMarketAgent
 from high_frequency_trading.hft.trader import ELOTrader
 from high_frequency_trading.hft.incoming_message import IncomingMessage
@@ -43,12 +42,3 @@ class ActiveAgent(BaseMarketAgent):
         while event.exchange_msgs:
             e_msg = event.exchange_msgs.pop()
             self.exchange_connection.sendMessage(e_msg.translate(), e_msg.delay)
-
-    # def connect(self):
-    #     reactor.connectTCP(self.focal_exchange_host, self.focal_exchange_json_line_port,
-    #         JSONLineClientFactory('focal', self))
-    #     reactor.connectTCP(self.focal_exchange_host, self.focal_exchange_ouch_port,
-    #         OUCHClientFactory(self))
-    #     if self.external_exchange_host is not None:
-    #         reactor.connectTCP(self.external_exchange_host, self.external_exchange_json_line_port,
-    #             JSONLineClientFactory('external', self))

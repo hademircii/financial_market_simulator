@@ -1,6 +1,6 @@
 from primitives.base_market_agent import BaseMarketAgent
 from high_frequency_trading.hft.trader import ELOInvestor
-from .utility import MockWSMessage, generate_random_test_orders
+from utility import MockWSMessage, generate_random_test_orders
 import logging
 
 log = logging.getLogger(__name__)
@@ -28,6 +28,7 @@ class PassiveAgent(BaseMarketAgent):
     trader_model_cls = ELOInvestor
 
     def __init__(self, session_duration=60, random_order_file=None):
+        super().__init__()
         self.trader_model = self.trader_model_cls(
             *self.default_trader_model_args, firm=self.account_id)
         self.random_order_generator = generate_random_test_orders(NUM_ORDERS, session_duration)
@@ -66,4 +67,4 @@ class PassiveAgent(BaseMarketAgent):
             if self.exchange_connection is not None:
                 self.exchange_connection.sendMessage(message.translate(), delay)
             else:
-                raise Exception('exchange connection is none.')
+                self.outgoing_msg.append((message.translate(), delay))
