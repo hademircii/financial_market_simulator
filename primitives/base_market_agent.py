@@ -3,6 +3,7 @@ from random import choice
 import string
 from high_frequency_trading.hft.incoming_message import IncomingOuchMessage
 from high_frequency_trading.hft.event import ELOEvent
+from db import db
 from collections import deque
 
 def generate_account_id(size=4):
@@ -31,9 +32,11 @@ class BaseMarketAgent:
             msg, delay = self.outgoing_msg.popleft()
             self._exchange_connection.sendMessage(msg, delay)
 
+    @db.freeze_state('trader_model')     
     def handle_JSON(self, message: dict):
         pass
 
+    @db.freeze_state('trader_model')     
     def handle_OUCH(self, msg: IncomingOuchMessage):
         raise NotImplementedError()
 

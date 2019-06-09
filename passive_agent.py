@@ -1,6 +1,7 @@
 from primitives.base_market_agent import BaseMarketAgent
 from high_frequency_trading.hft.trader import ELOInvestor
 from utility import MockWSMessage, generate_random_test_orders
+from db import db
 import logging
 
 log = logging.getLogger(__name__)
@@ -42,9 +43,11 @@ class PassiveAgent(BaseMarketAgent):
         except StopIteration:
             log.debug('all orders are scheduled.')
 
+    @db.freeze_state('trader_model') 
     def handle_OUCH(self, msg):
         event = self.event_cls('exchange', msg)
         self.trader_model.handle_event(event)
+        return event
 
     def generate_order(self, *args, **kwargs):
         new_order = next(self.random_order_generator)

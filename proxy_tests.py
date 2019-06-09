@@ -18,7 +18,7 @@ if __name__ == '__main__':
     exchange_host, exchange_port = '127.0.0.1', 9001
     proxy_server_port = 9100
     json_line_server_port = 9200
-    proxy_server = ELOMarketProxy(exchange_host, exchange_port, session_duration=240)
+    proxy_server = ELOMarketProxy('TEST', exchange_host, exchange_port, session_duration=240)
     reactor.connectTCP(exchange_host, exchange_port, 
         ProxyOuchClientFactory(proxy_server))
     reactor.listenTCP(proxy_server_port, ProxyOuchServerFactory(proxy_server))

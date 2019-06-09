@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 
 
 class ProxyOuchServerProtocol(OUCH):
+    name = 'private OUCH channel'
 
     def __init__(self, market, users):
         super().__init__()
@@ -30,7 +31,8 @@ class ProxyOuchServerProtocol(OUCH):
                 if account_id not in self.users:
                     self.users[account_id] = self
                     self.state = 'TRADE'
-                    log.debug('registered account id %s' % account_id)
+                    log.debug('registered account id %s to %s.' % (account_id, 
+                        self.name))
                 else:
                     log.error('account id is already taken..ignoring message %s' % msg)
         else:

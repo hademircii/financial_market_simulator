@@ -2,6 +2,7 @@ from twisted.internet import reactor
 from high_frequency_trading.hft.incoming_message import IncomingOuchMessage
 from high_frequency_trading.hft.market import BaseMarket
 from high_frequency_trading.hft.event import Event
+from db import db
 from itertools import count
 from collections import deque
 import utility
@@ -20,14 +21,17 @@ class BaseMarketProxy:
     _ids = count(1, 1)
 
 
-    def __init__(self, exchange_host, exchange_port, **kwargs):
+    def __init__(self, session_id, exchange_host, exchange_port, **kwargs):
         self.market_id = next(self._ids)
-        self.market = self.market_cls(0, 0, 0, exchange_host, exchange_port, **kwargs)
+        self.session_id = session_id
+        self.market = self.market_cls(self.market_id, 0, session_id, 
+                exchange_host, exchange_port, **kwargs)
         self.exchange_connection = None
         self.json_server_factory = None
         self.ouch_server_factory = None
         self.outgoing_queue = deque(maxlen=100)
     
+    @db.freeze_state('market')     
     def handle_OUCH(self, message: IncomingOuchMessage, original_msg: bytes, direction: int):
         if direction is 1:
             if message.type in self.public_msg_types:
@@ -57,13 +61,17 @@ class BaseMarketProxy:
                     earlier_msg = self.outgoing_queue.popleft()
                     self.exchange_connection.sendMessage(earlier_msg, 0)
                 self.exchange_connection.sendMessage(original_msg, 0)
+        else:
+            log.error('invalid message direction %s' % direction)
         if hasattr(message, 'type') and message.type in self.market_events:
             event = self.event_cls('OUCH', message)
             self.market.handle_event(event)
             while event.broadcast_msgs:
                 broadcast_msg = event.broadcast_msgs.pop()
-                self.json_server_factory.broadcast(broadcast_msg.to_json())
+                self.json_server_factory.broadcast(broadcast_msg)
+            return event
     
+    @db.freeze_state('market')
     def handle_JSON(self):
         # this is not a requirement at this point
         pass

@@ -1,7 +1,10 @@
 from twisted.internet import reactor
-from .active_agent import ActiveAgent
-from .protocols.json_line_protocol import JSONLineClientFactory
-from .protocols.ouch_trade_client_protocol import OUCHClientFactory
+from active_agent import ActiveAgent
+from protocols.json_line_protocol import JSONLineClientFactory
+from protocols.ouch_trade_client_protocol import OUCHClientFactory
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 focal_exchange_host = '127.0.0.1'
 focal_exchange_ouch_port = 9100
@@ -19,3 +22,4 @@ if __name__ == '__main__':
     if external_exchange_host is not None:
         reactor.connectTCP(external_exchange_host, external_exchange_json_line_port,
             JSONLineClientFactory('external', agent))
+    reactor.run()

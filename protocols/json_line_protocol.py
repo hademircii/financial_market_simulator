@@ -1,5 +1,6 @@
 from twisted.internet import protocol, reactor
 from twisted.protocols import basic
+from high_frequency_trading.hft.outbound_message_primitives import OutboundMessage
 import json
 import random
 import logging
@@ -14,6 +15,7 @@ log = logging.getLogger(__name__)
 # for public messages
 
 class JSONLineServerProtocol(basic.LineReceiver):
+    name = 'public JSON channel'
 
     def __init__(self, market, users):
         self.market = market
@@ -21,10 +23,7 @@ class JSONLineServerProtocol(basic.LineReceiver):
         self.account_id = None
         self.state = 'GETACCOUNTID'
 
-    def connectionMade(self):
-        self.sendLine('send account id..')
-
-    def connectionLost(self):
+    def connectionLost(self, reason):
         if self.account_id in self.users:
             log.debug('user %s disconnected' % self.account_id)
             del self.users[self.account_id]
@@ -37,9 +36,12 @@ class JSONLineServerProtocol(basic.LineReceiver):
         else:
             if self.state == 'GETACCOUNTID': 
                 if 'account_id' in dict_msg:
+                    account_id = dict_msg['account_id']
                     if account_id not in self.users:
+                        self.account_id = account_id
                         self.users[account_id] = self
-                        self.account_id = dict_msg['account_id']
+                        log.debug('account %s registered to %s.' % (account_id, 
+                            self.name))
                     else:
                         log.error('Account id %s is already taken..' % account_id)
                         return 
@@ -61,24 +63,27 @@ class JSONLineServerFactory(protocol.ServerFactory):
         self.users = {}
     
     def buildProtocol(self, addr):
-        return self.protocol(self.users, self.market)
+        return self.protocol(self.market, self.users)
     
-    def broadcast(self, msg, shuffle=True):
-        if not isinstance(msg, str):
+    def broadcast(self, msg: OutboundMessage, shuffle=True):
+        if isinstance(msg, OutboundMessage):
             try:
-                json_msg = json.dumps(msg)
+                json_msg = msg.to_json()
             except:
                 log.exception('failed to convert json: %s' % json_msg)
         else:
-            json_msg = msg
+            raise TypeError('invalid msg type %s' % msg.__class__)
         if '\n' in json_msg:
-            raise Exception('new line character is not allowed: %s' % json_msg)
+            raise ValueError('new line character is not allowed: %s' % json_msg)
         connections = [conn for conn in self.users.values()]
+        bytes_json_msg = bytes(json_msg, 'utf-8')
+        log.debug('broadcasting to: %s --> %s ' % (':'.join(c.account_id 
+                  for c in connections), msg))
         if connections:
             if shuffle:
                 random.shuffle(connections)
             for c in connections:
-                c.sendLine(json_msg)
+                c.sendLine(bytes_json_msg)
 
 
 
@@ -89,9 +94,9 @@ class JSONLineClientProtocol(basic.LineReceiver):
         self.trader = trader
     
     def connectionMade(self):
-        self.sendLine(
-            json.dumps({'type': 'greet', 'account_id': self.trader.account_id})
-            )
+        msg = json.dumps({'type': 'greet', 'account_id': self.trader.account_id})
+        log.debug('registering with account id %s' % self.trader.account_id)
+        self.sendLine(bytes(msg, 'utf-8'))
         
     def lineReceived(self, line):
         try:
