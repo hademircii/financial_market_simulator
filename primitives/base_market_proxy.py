@@ -44,7 +44,7 @@ class BaseMarketProxy:
                     if firm:
                         account_id = firm
                     else:
-                        raise Exception('unable to find recipient for: %s' % message)
+                        raise Exception('unable to determine recipient for: %s' % message)
                 try:
                     account_conn = self.ouch_server_factory.users[account_id]
                 except KeyError:

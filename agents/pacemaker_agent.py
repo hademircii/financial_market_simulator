@@ -10,8 +10,8 @@ log = logging.getLogger(__name__)
 # given a random order generator
 # 'next's it and sends orders to the exchange
 # does not react (except handling exchange responses)
-# or adjusts market position
-# does not listen on public message channel as well.
+# or adjust market position
+# does not listen to public message channel as well.
 
 ws_message_defaults = {
     'subsession_id': 0,  'market_id': 0, 'player_id': 0,
@@ -19,19 +19,18 @@ ws_message_defaults = {
 
 NUM_ORDERS = 60
 
-class PassiveAgent(BaseMarketAgent):
+class PaceMakerAgent(BaseMarketAgent):
 
-    default_trader_model_args = (0, 0, 0, 1, 'investor', 0, 0)
     message_class = MockWSMessage
     required_message_fields = {
         'arrival_time': float, 'price': int, 'buy_sell_indicator': str, 
         'time_in_force': int}
     trader_model_cls = ELOInvestor
 
-    def __init__(self, session_duration=60, random_order_file=None):
-        super().__init__()
-        self.trader_model = self.trader_model_cls(
-            *self.default_trader_model_args, firm=self.account_id)
+    def __init__(self, *args, session_duration=60, random_order_file=None):
+        super().__init__(*args)
+        self.trader_model = self.trader_model_cls(self.session_id, 0, 1, 0, 'investor', 
+            0, 0, firm=self.account_id)
         self.random_order_generator = generate_random_test_orders(NUM_ORDERS, session_duration)
         self.exchange_connection = None
 

@@ -15,8 +15,9 @@ class BaseMarketAgent:
     _ids = count(1, 1)
     event_cls = ELOEvent
 
-    def __init__(self, *trader_model_args, account_id=None, **trader_model_kwargs):
+    def __init__(self, session_id, *trader_model_args, account_id=None, **trader_model_kwargs):
         self.id = next(self._ids)
+        self.session_id = session_id
         self.account_id = account_id or generate_account_id()
         self._exchange_connection = None
         self.outgoing_msg = deque()
@@ -40,5 +41,7 @@ class BaseMarketAgent:
     def handle_OUCH(self, msg: IncomingOuchMessage):
         raise NotImplementedError()
 
+    def run(self):
+        pass
 
 

@@ -31,7 +31,7 @@ class ProxyOuchServerProtocol(OUCH):
                 if account_id not in self.users:
                     self.users[account_id] = self
                     self.state = 'TRADE'
-                    log.debug('registered account id %s to %s.' % (account_id, 
+                    log.info('registered account id %s to %s.' % (account_id, 
                         self.name))
                 else:
                     log.error('account id is already taken..ignoring message %s' % msg)
@@ -45,6 +45,7 @@ class ProxyOuchServerFactory(protocol.ServerFactory):
     def __init__(self, market):
         super()
         self.market = market
+        market.ouch_server_factory = self
         self.users = {}
 
     def buildProtocol(self, addr):
@@ -73,7 +74,7 @@ class ProxyOuchClient(OUCH):
         self.market.handle_OUCH(msg, original_msg, 1)     
 
     def connectionMade(self):
-        log.debug('connected to exchange')
+        log.info('connected to exchange')
 
 
 class ProxyOuchClientFactory(protocol.ClientFactory):

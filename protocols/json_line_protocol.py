@@ -25,7 +25,7 @@ class JSONLineServerProtocol(basic.LineReceiver):
 
     def connectionLost(self, reason):
         if self.account_id in self.users:
-            log.debug('user %s disconnected' % self.account_id)
+            log.info('user %s disconnected' % self.account_id)
             del self.users[self.account_id]
     
     def lineReceived(self, line):
@@ -40,7 +40,7 @@ class JSONLineServerProtocol(basic.LineReceiver):
                     if account_id not in self.users:
                         self.account_id = account_id
                         self.users[account_id] = self
-                        log.debug('account %s registered to %s.' % (account_id, 
+                        log.info('account %s registered to %s.' % (account_id, 
                             self.name))
                     else:
                         log.error('Account id %s is already taken..' % account_id)
@@ -59,7 +59,7 @@ class JSONLineServerFactory(protocol.ServerFactory):
     def __init__(self, market):
         super()
         self.market = market
-        self.market.json_server_factory = self
+        market.json_server_factory = self
         self.users = {}
     
     def buildProtocol(self, addr):
@@ -95,14 +95,14 @@ class JSONLineClientProtocol(basic.LineReceiver):
     
     def connectionMade(self):
         msg = json.dumps({'type': 'greet', 'account_id': self.trader.account_id})
-        log.debug('registering with account id %s' % self.trader.account_id)
+        log.info('registering with account id %s' % self.trader.account_id)
         self.sendLine(bytes(msg, 'utf-8'))
         
     def lineReceived(self, line):
         try:
             dict_msg = json.loads(line)
         except:
-            log.exception('failed to convert line to json, ignoring: %s' % line)
+            log.warning('failed to convert line to json, ignoring: %s' % line)
         self.trader.handle_JSON(dict_msg, self.type_code)
 
 
@@ -114,7 +114,7 @@ class JSONLineClientFactory(protocol.ClientFactory):
         self.trader = trader
     
     def buildProtocol(self, addr):
-        log.debug('connected to %s' % addr)
+        log.info('connected to %s' % addr)
         return self.protocol(self.type_code, self.trader)
 
 

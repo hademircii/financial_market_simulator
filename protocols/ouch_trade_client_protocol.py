@@ -32,6 +32,6 @@ class OUCHClientFactory(ClientFactory):
         self.trader = trader
     
     def buildProtocol(self, addr):
-        log.debug('connecting to the exchange at %s' % addr)
+        log.info('connecting to the exchange at %s' % addr)
         conn = self.protocol(self.trader)
         return conn

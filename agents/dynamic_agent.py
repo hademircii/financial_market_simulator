@@ -19,12 +19,12 @@ def generate_account_id(size=4):
     return ''.join(choice(string.ascii_uppercase) for i in range(size))
 
 
-class ActiveAgent(BaseMarketAgent):
+class DynamicAgent(BaseMarketAgent):
     trader_model_cls = ELOTrader
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.trader_model = self.trader_model_cls(0, 0, self.id, self.id, 'automated', 
+        self.trader_model = self.trader_model_cls(self.session_id, 0, self.id, self.id, 'automated', 
                 '', 0, firm=self.account_id)
 
     @db.freeze_state('trader_model')   
