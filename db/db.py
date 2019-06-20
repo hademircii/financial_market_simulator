@@ -3,14 +3,8 @@ import datetime
 from high_frequency_trading.hft.utility import serialize_in_memo_model
 import os
 import utility
+from .conf import psql_db
 
-db_name = 'fimsim'
-host = 'localhost'
-db_user = os.getenv('DBUSER')
-db_password = os.getenv('DBPASSWORD')
-
-psql_db = PostgresqlDatabase(db_name, user=db_user, 
-    password=db_password, host=host)
 
 def get_db_model(model_key):
     try:

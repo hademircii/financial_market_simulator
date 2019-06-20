@@ -15,11 +15,13 @@ class BaseMarketAgent:
     _ids = count(1, 1)
     event_cls = ELOEvent
 
-    def __init__(self, session_id, *trader_model_args, account_id=None, **trader_model_kwargs):
+    def __init__(self, session_id, *trader_model_args, account_id=None, 
+                    event_emitters=None, **trader_model_kwargs):
         self.id = next(self._ids)
         self.session_id = session_id
         self.account_id = account_id or generate_account_id()
         self._exchange_connection = None
+        self.event_emitters = event_emitters
         self.outgoing_msg = deque()
 
     @property
@@ -41,7 +43,20 @@ class BaseMarketAgent:
     def handle_OUCH(self, msg: IncomingOuchMessage):
         raise NotImplementedError()
 
-    def run(self):
-        pass
+    @db.freeze_state('trader_model')        
+    def handle_discrete_event(self, event_data:dict):
+        raise NotImplementedError()
+
+
+    def process_event(self, event):
+        while event.exchange_msgs:
+            e_msg = event.exchange_msgs.pop()
+            self.exchange_connection.sendMessage(e_msg.translate(), e_msg.delay)
+
+    def ready(self):
+        if self.event_emitters:
+            for em in self.event_emitters:
+                em.owner = self
+                em.register_events()
 
 

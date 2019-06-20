@@ -1,4 +1,5 @@
-from db.db import ELOMarket, ELOAgent, psql_db
+from db.db import ELOMarket, ELOAgent
+from db.conf import psql_db
 import csv
 import datetime
 

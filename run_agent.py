@@ -1,10 +1,13 @@
 import configargparse
 from twisted.internet import reactor
+import draw
+from discrete_event_emitter import *
 from agents.pacemaker_agent import PaceMakerAgent
 from agents.dynamic_agent import DynamicAgent 
 from protocols.ouch_trade_client_protocol import OUCHClientFactory
 from protocols.json_line_protocol import JSONLineClientFactory
 from utility import random_chars
+import settings
 import logging as log
 
 p = configargparse.getArgParser()
@@ -20,14 +23,28 @@ p.add('--external_exchange_json_port', type=int)
 p.add('--agent_type', choices=['rabbit', 'elo'], required=True)
 options, args = p.parse_known_args()
 
-
-def main(agent_class):
+        
+        
+def main():
     log.basicConfig(level= log.DEBUG if options.debug else log.INFO,
         format = "[%(asctime)s.%(msecs)03d] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
         datefmt = '%H:%M:%S')
     
-    agent = agent_class(options.session_id, options.exchange_host, 
-        options.exchange_ouch_port)
+    agent_type = options.agent_type
+    session_duration = options.session_duration
+    if agent_type == 'rabbit':
+        random_orders = draw.elo_draw(session_duration, settings.random_orders_defaults)
+        event_emitters = [RandomOrderEmitter(source_data=random_orders), ]
+        agent_cls = PaceMakerAgent
+
+    elif agent_type == 'elo':
+        events = settings.agent_event_confs[0]   # well, index 0 definitely not none.
+        event_emitters = [ELOSliderChangeEmitter(source_data=events['slider']), 
+            ELOSpeedChangeEmitter(source_data=events['speed'])]
+        agent_cls = DynamicAgent
+
+    agent = agent_cls(options.session_id, options.exchange_host, 
+        options.exchange_ouch_port, event_emitters=event_emitters)
 
     reactor.connectTCP(options.exchange_host, options.exchange_ouch_port,
         OUCHClientFactory(agent))
@@ -41,16 +58,10 @@ def main(agent_class):
             options.external_exchange_json_port,  
             JSONLineClientFactory('external', agent))
 
-    agent.run()
-    
+    agent.ready()
+    reactor.callLater(session_duration, reactor.stop)
     reactor.run()
 
 if __name__ == '__main__':
-    agent_type = options.agent_type
-    if agent_type == 'rabbit':
-        main(PaceMakerAgent)
-    elif agent_type == 'elo':
-        main(DynamicAgent)
-    else:
-        log.error('invalid agent type %s' % agent_type)
+    main()
     

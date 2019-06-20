@@ -29,22 +29,33 @@ class DynamicAgent(BaseMarketAgent):
 
     @db.freeze_state('trader_model')   
     def handle_JSON(self, message: dict, type_code:str):
-        clean_message = message
         clean_message = utility.transform_incoming_message(type_code, message)
         msg = IncomingMessage(clean_message)
-        log.debug('received message %s' % msg)
+        log.debug('received json message %s' % msg)
         event = self.event_cls(type_code, msg)
         self.trader_model.handle_event(event)
-        while event.exchange_msgs:
-            e_msg = event.exchange_msgs.pop()
-            self.exchange_connection.sendMessage(e_msg.translate(), e_msg.delay)
+        event = self.process_event(event)
         return event
 
     @db.freeze_state('trader_model')           
     def handle_OUCH(self, msg):
         event = self.event_cls('OUCH', msg)
+        log.debug('received ouch message %s' % msg)
         self.trader_model.handle_event(event)
-        while event.exchange_msgs:
-            e_msg = event.exchange_msgs.pop()
-            self.exchange_connection.sendMessage(e_msg.translate(), e_msg.delay)
+        event = self.process_event(event)
         return event
+
+    @db.freeze_state('trader_model')
+    def handle_discrete_event(self, event_data):
+        clean_message = utility.transform_incoming_message(event_data)
+        log.debug('received discrete event message %s' % clean_message)
+        event = self.event_cls('scheduled event', clean_message)
+        event = self.process_event(event)
+        return event
+
+
+
+
+
+
+

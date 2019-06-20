@@ -1,7 +1,7 @@
 from high_frequency_trading.hft.incoming_message import IncomingWSMessage
 from random import randint, choice
 import string
-
+import csv
 
 SESSION_CODE_CHARSET = string.ascii_lowercase + string.digits  # otree <3
 
@@ -19,7 +19,6 @@ def transform_incoming_message(source, message):
     message['subsession_id'] = 0
     return message
 
-
 def generate_random_test_orders(num_orders, session_duration):
     return iter(
             {'arrival_time': randint(10, 60) / 10,
@@ -31,6 +30,22 @@ def generate_random_test_orders(num_orders, session_duration):
 def extract_firm_from_message(message):
     if hasattr(message, 'order_token'):
         return message.order_token[:4]
+
+
+def read_agent_events_from_csv(path):
+    """ well this code sucks but it is very specific to elo"""
+    with open(path, 'r') as f:
+        reader = csv.reader(f)
+        next(reader) # first row is column names
+        num_agents = max([int(row[1]) for row in reader])
+        input_lists = [[{'speed': [], 'slider': []}] for _ in range(num_agents)]
+        for row in reader:
+            arrival_time, agent_num, tech_subsc, a_x, a_y, a_z = row
+            speed_row = (arrival_time, tech_subsc)
+            slider_row = (arrival_time, a_x, a_y, a_z)
+            input_lists[agent_num]['speed'].append(speed_row)
+            input_lists[agent_num]['slider'].append(slider_row)
+    return input_lists
 
 class MockWSMessage(IncomingWSMessage):
 
