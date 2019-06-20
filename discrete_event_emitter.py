@@ -43,6 +43,7 @@ class ELOSpeedChangeEmitter(DiscreteEventEmitter):
     name = 'speed_change'
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.previous_state = (0, False)
 
     def has_changed(self, incoming_row):
@@ -54,6 +55,7 @@ class ELOSliderChangeEmitter(DiscreteEventEmitter):
     name = 'slider'
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.previous_state = (0., 0., 0., 0.)
 
     def has_changed(self, incoming_row):

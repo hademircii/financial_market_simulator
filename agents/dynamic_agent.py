@@ -26,12 +26,19 @@ class DynamicAgent(BaseMarketAgent):
         super().__init__(*args, **kwargs)
         self.trader_model = self.trader_model_cls(self.session_id, 0, self.id, self.id, 'automated', 
                 '', 0, firm=self.account_id)
+        # the agent expects an external feed message
+        # with fields e_best_bid e_best_offer e_signed_volume
+        # so I need a hack as market proxies always send those 
+        # separately, this is very specific to elo environment
+        self.external_market_state = {'e_best_bid': None, 'e_best_offer': None, 
+            'e_signed_volume': 0}
 
     @db.freeze_state('trader_model')   
     def handle_JSON(self, message: dict, type_code:str):
-        clean_message = utility.transform_incoming_message(type_code, message)
+        clean_message = utility.transform_incoming_message(type_code, message,
+            self.external_market_state)
         msg = IncomingMessage(clean_message)
-        log.debug('received json message %s' % msg)
+        log.debug('received json message %s:%s' % (type_code, msg))
         event = self.event_cls(type_code, msg)
         self.trader_model.handle_event(event)
         event = self.process_event(event)
@@ -47,7 +54,8 @@ class DynamicAgent(BaseMarketAgent):
 
     @db.freeze_state('trader_model')
     def handle_discrete_event(self, event_data):
-        clean_message = utility.transform_incoming_message(event_data)
+        clean_message = utility.transform_incoming_message('scheduled event', event_data)
+        clean_message = IncomingMessage(clean_message)
         log.debug('received discrete event message %s' % clean_message)
         event = self.event_cls('scheduled event', clean_message)
         event = self.process_event(event)

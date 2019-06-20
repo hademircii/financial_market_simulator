@@ -7,15 +7,15 @@ import logging as log
 from utility import random_chars
 
 p = configargparse.getArgParser()
-p.add('--session_duration', required=True, type=int, 
+p.add('--session_duration', default=9999, type=int, 
     help='required: session duration in seconds')
 p.add('--debug', action='store_true')
 p.add('--session_id', default=random_chars(8))
 p.add('--host', default='127.0.0.1')
-p.add('--ouch_port', default=9201, help='port to listen to OUCH messages on')
-p.add('--json_port', default=9202, help='port to listen to JSON messages on')
+p.add('--ouch_port', default=9201, type=int, help='port to listen to OUCH messages on')
+p.add('--json_port', default=9202, type=int, help='port to listen to JSON messages on')
 p.add('--exchange_host', default='127.0.0.1', help='Address of the matching engine to proxy')
-p.add('--exchange_port', default=9001)
+p.add('--exchange_port', default=9001, type=int)
 options, args = p.parse_known_args()
 
 
