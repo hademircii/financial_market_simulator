@@ -27,6 +27,8 @@ class DiscreteEventEmitter:
                 row_as_dict['type'] = self.name
                 reactor.callLater(arrival_time, self.owner.handle_discrete_event, row_as_dict)
                 self.previous_state = row
+
+
     
     def has_changed(self, incoming_row):
         return True
@@ -50,7 +52,7 @@ class ELOSpeedChangeEmitter(DiscreteEventEmitter):
         return not (self.previous_state[1] == incoming_row[1])
 
 class ELOSliderChangeEmitter(DiscreteEventEmitter):
-    fieldnames = ('slider_a_x', 'slider_a_y', 'slider_a_z')
+    fieldnames = ('a_x', 'a_y', 'a_z')
     fieldtypes = (float, float, float)
     name = 'slider'
 

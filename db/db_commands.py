@@ -22,7 +22,7 @@ def get_session_data(session_id, model_cls):
 
 export_path = 'exports/{record_class}_accessed_{timestamp}.csv'
 
-def export_session_csv(session_id, record_class):
+def export_csv(session_id, record_class):
     def write_csv(path, raw_data, fieldnames):
         with open(path, 'w') as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
@@ -35,3 +35,7 @@ def export_session_csv(session_id, record_class):
         timestamp=timestamp)
     query = get_session_data(session_id, record_class)
     write_csv(file_path, query.dicts(), fieldnames)
+
+def export_session(session_id):
+    for model_cls in models:
+        export_csv(session_id, model_cls)

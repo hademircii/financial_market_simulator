@@ -117,4 +117,9 @@ class JSONLineClientFactory(protocol.ClientFactory):
         log.info('connected to %s' % addr)
         return self.protocol(self.type_code, self.trader)
 
+    def clientConnectionLost(self, connector, reason):
+        log.info('reconnecting..')
+        connector.connect()
+
+
 

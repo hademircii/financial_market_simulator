@@ -25,8 +25,8 @@ class PaceMakerAgent(BaseMarketAgent):
 
     trader_model_cls = ELOInvestor
 
-    def __init__(self, session_duration, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, session_id, *args, **kwargs):
+        super().__init__(session_id, *args,  **kwargs)
         self.trader_model = self.trader_model_cls(self.session_id, 0, 1, 0, 'investor', 
             0, 0, firm=self.account_id)
         self.exchange_connection = None

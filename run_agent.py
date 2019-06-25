@@ -42,7 +42,7 @@ def main():
         event_emitters = [ELOSliderChangeEmitter(source_data=events['slider']), 
             ELOSpeedChangeEmitter(source_data=events['speed'])]
         agent_cls = DynamicAgent
-
+ 
     agent = agent_cls(options.session_id, options.exchange_host, 
         options.exchange_ouch_port, event_emitters=event_emitters)
 
@@ -59,6 +59,7 @@ def main():
             JSONLineClientFactory('external', agent))
 
     agent.ready()
+    reactor.callLater(session_duration, agent.close_session)
     reactor.callLater(session_duration, reactor.stop)
     reactor.run()
 

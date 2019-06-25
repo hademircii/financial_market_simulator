@@ -1,6 +1,7 @@
 from twisted.internet import protocol, reactor
 from high_frequency_trading.hft.incoming_message import IncomingOuchMessage
 from utility import incoming_message_defaults
+from high_frequency_trading.exchange_server.OuchServer import ouch_messages
 from high_frequency_trading.hft.exchange import OUCH
 import random
 import logging
@@ -10,6 +11,13 @@ log = logging.getLogger(__name__)
 
 class ProxyOuchServerProtocol(OUCH):
     name = 'private OUCH channel'
+    bytes_needed = {
+        'S': 10,
+        'C': 19,
+        'O': 49,
+        'U': 47
+    }
+    message_cls = ouch_messages.OuchClientMessages
 
     def __init__(self, market, users):
         super().__init__()
@@ -21,7 +29,7 @@ class ProxyOuchServerProtocol(OUCH):
     def handle_incoming_data(self, header):
         original_msg = bytes(self.buffer)
         msg = IncomingOuchMessage(
-            original_msg, **incoming_message_defaults)
+            original_msg, message_cls=self.message_cls, **incoming_message_defaults)
         if self.state == 'GETACCOUNTID':
             try:
                 account_id = msg.firm
@@ -35,12 +43,12 @@ class ProxyOuchServerProtocol(OUCH):
                         self.name))
                 else:
                     log.error('account id is already taken..ignoring message %s' % msg)
-        else:
-            self.market.handle_OUCH(msg, original_msg, 2)
+        self.market.handle_OUCH(msg, original_msg, 2)
 
 
 class ProxyOuchServerFactory(protocol.ServerFactory): 
     protocol = ProxyOuchServerProtocol
+
 
     def __init__(self, market):
         super()
@@ -62,6 +70,15 @@ class ProxyOuchServerFactory(protocol.ServerFactory):
                 c.sendMessage(msg, 0)
 
 class ProxyOuchClient(OUCH):
+    bytes_needed = {
+        'S': 10,
+        'E': 40,
+        'C': 28,
+        'U': 80,
+        'A': 66,
+        'Q': 41,
+    }
+    message_cls = ouch_messages.OuchServerMessages
 
     def __init__(self, market):
         super().__init__()
@@ -70,7 +87,7 @@ class ProxyOuchClient(OUCH):
     def handle_incoming_data(self, header):
         original_msg = bytes(self.buffer)
         msg = IncomingOuchMessage(
-            original_msg, **incoming_message_defaults)
+            original_msg, message_cls=self.message_cls, **incoming_message_defaults)
         self.market.handle_OUCH(msg, original_msg, 1)     
 
     def connectionMade(self):

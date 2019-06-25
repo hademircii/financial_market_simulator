@@ -72,7 +72,9 @@ class ELOAgent(BaseModel):
 
     csv_meta = (
     'timestamp', 'subsession_id', 'account_id', 'trigger_msg_type',
-    'trader_model_name', 'inventory', 'bid', 'offer', 
+    'market_id', 'trader_model_name', 'inventory', 'best_bid', 'best_offer',
+    'next_bid', 'next_offer', 'e_best_bid', 'e_best_offer',
+    'bid', 'offer', 
     'best_bid_except_me', 'best_offer_except_me',
     'delay', 'staged_bid', 'staged_offer', 'implied_bid', 
     'implied_offer', 'slider_a_x','slider_a_y', 'slider_a_z',
@@ -80,7 +82,8 @@ class ELOAgent(BaseModel):
 
     subsession_id = CharField()
     trigger_msg_type = CharField()
-    firm = CharField()
+    market_id = CharField(default=0)
+    account_id = CharField()
     trader_model_name =  CharField()
     delay = FloatField()
     net_worth = IntegerField()
@@ -89,6 +92,12 @@ class ELOAgent(BaseModel):
     speed_cost = IntegerField()
     tax_paid = IntegerField()
     reference_price = IntegerField()
+    best_bid = IntegerField()
+    best_offer = IntegerField()
+    next_bid = IntegerField()
+    next_offer = IntegerField()
+    e_best_bid = IntegerField()
+    e_best_offer = IntegerField()
     inventory = IntegerField()
     bid = IntegerField(null=True)
     offer = IntegerField(null=True)

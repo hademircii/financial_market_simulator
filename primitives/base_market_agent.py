@@ -5,6 +5,8 @@ from high_frequency_trading.hft.incoming_message import IncomingOuchMessage
 from high_frequency_trading.hft.event import ELOEvent
 from db import db
 from collections import deque
+import utility
+import settings
 
 def generate_account_id(size=4):
     return ''.join(choice(string.ascii_uppercase) for i in range(size))
@@ -14,12 +16,14 @@ class BaseMarketAgent:
 
     _ids = count(1, 1)
     event_cls = ELOEvent
+    typecode = ''
 
     def __init__(self, session_id, *trader_model_args, account_id=None, 
-                    event_emitters=None, **trader_model_kwargs):
+                    event_emitters=None):
         self.id = next(self._ids)
         self.session_id = session_id
         self.account_id = account_id or generate_account_id()
+        self.trader_model = None
         self._exchange_connection = None
         self.event_emitters = event_emitters
         self.outgoing_msg = deque()
@@ -46,8 +50,7 @@ class BaseMarketAgent:
     @db.freeze_state('trader_model')        
     def handle_discrete_event(self, event_data:dict):
         raise NotImplementedError()
-
-
+    
     def process_event(self, event):
         while event.exchange_msgs:
             e_msg = event.exchange_msgs.pop()
@@ -59,4 +62,6 @@ class BaseMarketAgent:
                 em.owner = self
                 em.register_events()
 
+    def close_session(self):
+        pass
 
