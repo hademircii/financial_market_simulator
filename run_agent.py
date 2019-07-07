@@ -32,13 +32,13 @@ def main(account_id, settings: dict):
     agent_type = options.agent_type
     session_duration = options.session_duration
     if agent_type == 'rabbit':
-        random_orders = draw.elo_draw(session_duration, settings.simulation_parameters,
+        random_orders = draw.elo_draw(session_duration, settings.SIMULATION_PARAMETERS,
             seed=options.random_seed)
         event_emitters = [RandomOrderEmitter(source_data=random_orders), ]
         agent_cls = PaceMakerAgent
 
     elif agent_type == 'elo':
-        events = settings.agent_event_confs[options.config_num]
+        events = settings.AGENT_STATE_CONFS[options.config_num]
         event_emitters = [ELOSliderChangeEmitter(source_data=events['slider']), 
             ELOSpeedChangeEmitter(source_data=events['speed'])]
         agent_cls = DynamicAgent
@@ -66,8 +66,9 @@ def main(account_id, settings: dict):
 
 if __name__ == '__main__':
     account_id = generate_account_id()
-    log.basicConfig(level= log.DEBUG if options.debug else log.INFO, 
-        filename='logs/session_%s_trader_%s.log' % (
+    log.basicConfig(
+        level=log.DEBUG if options.debug else log.INFO, 
+        filename=settings.logs_dir + 'session_%s_trader_%s.log' % (
         options.session_code, account_id),
         format = "[%(asctime)s.%(msecs)03d] %(levelname)s \
             [%(name)s.%(funcName)s:%(lineno)d] %(message)s",

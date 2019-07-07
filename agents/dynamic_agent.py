@@ -41,7 +41,8 @@ class DynamicAgent(BaseMarketAgent):
     @db.freeze_state()   
     def ready(self):
         super().ready()
-        msg = utility.get_mock_market_msg(settings.initial_trader_state, 'market_start')
+        msg = utility.get_mock_market_msg(
+            settings.get_traders_initial_market_view(), 'market_start')
         event = self.event_cls('initial state', msg)
         self.model.handle_event(event)
         return event

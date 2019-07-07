@@ -6,7 +6,6 @@ from high_frequency_trading.hft.event import ELOEvent
 from db import db
 from collections import deque
 import utility
-import settings
 import logging
 
 log = logging.getLogger(__name__)

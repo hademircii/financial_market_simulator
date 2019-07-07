@@ -19,8 +19,10 @@ def write_to_db(model_class, **kwargs):
 # TODO: bulk inserts and queueing
     model_class.create(**kwargs)
 
+
 def freeze_state():
     attr_name = 'model'
+
     def decorator(func):
         def db_recorded(market_entity, *args, **kwargs):
             event = func(market_entity, *args, **kwargs)
@@ -29,11 +31,12 @@ def freeze_state():
                 ftf = get_freezed_fields_by_class(market_entity.tag)
                 props = ftf['properties_to_serialize']
                 subprops = ftf['subproperties_to_serialize']
-                frozen_model = serialize_in_memo_model(model_to_record, 
-                        props, subprops)
+                frozen_model = serialize_in_memo_model(
+                    model_to_record, props, subprops)
                 db_model_class = get_db_model(market_entity.tag)
-                write_to_db(db_model_class, trigger_msg_type=event.event_type, 
-                        **frozen_model)
+                write_to_db(
+                    db_model_class, trigger_msg_type=event.event_type, 
+                    **frozen_model)
         return db_recorded
     return decorator
 
@@ -45,15 +48,16 @@ class BaseModel(Model):
     class Meta:
         database = psql_db
 
+
 class ELOMarket(BaseModel):
     tag = 'market'
 
     csv_meta = (
-    'timestamp', 'subsession_id',
-    'market_id', 'trigger_msg_type',
-    'reference_price', 'best_bid', 'best_offer', 
-    'next_bid', 'next_offer', 'volume_at_best_bid', 'volume_at_best_offer', 
-    'e_best_bid', 'e_best_offer', 'signed_volume', 'e_signed_volume')
+        'timestamp', 'subsession_id',
+        'market_id', 'trigger_msg_type',
+        'reference_price', 'best_bid', 'best_offer', 
+        'next_bid', 'next_offer', 'volume_at_best_bid', 'volume_at_best_offer', 
+        'e_best_bid', 'e_best_offer', 'signed_volume', 'e_signed_volume')
 
     subsession_id = CharField()
     trigger_msg_type = CharField()
@@ -75,14 +79,14 @@ class ELOAgent(BaseModel):
     tag = 'agent'
 
     csv_meta = (
-    'timestamp', 'subsession_id', 'account_id', 'trigger_msg_type',
-    'market_id', 'trader_model_name', 'inventory', 'best_bid', 'best_offer',
-    'next_bid', 'next_offer', 'e_best_bid', 'e_best_offer',
-    'bid', 'offer', 
-    'best_bid_except_me', 'best_offer_except_me',
-    'delay', 'staged_bid', 'staged_offer', 'implied_bid', 
-    'implied_offer', 'slider_a_x','slider_a_y', 'slider_a_z',
-    'net_worth', 'cash', 'tax_paid', 'speed_cost')
+        'timestamp', 'subsession_id', 'account_id', 'trigger_msg_type',
+        'market_id', 'trader_model_name', 'inventory', 'best_bid', 'best_offer',
+        'next_bid', 'next_offer', 'e_best_bid', 'e_best_offer',
+        'bid', 'offer', 
+        'best_bid_except_me', 'best_offer_except_me',
+        'delay', 'staged_bid', 'staged_offer', 'implied_bid', 
+        'implied_offer', 'slider_a_x','slider_a_y', 'slider_a_z',
+        'net_worth', 'cash', 'tax_paid', 'speed_cost')
 
     subsession_id = CharField()
     trigger_msg_type = CharField()

@@ -4,7 +4,6 @@ from high_frequency_trading.hft.market import BaseMarket
 from high_frequency_trading.hft.event import Event
 from db import db
 from collections import deque
-import settings
 import utility
 import json
 import logging

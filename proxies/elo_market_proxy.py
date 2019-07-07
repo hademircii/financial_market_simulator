@@ -1,7 +1,6 @@
 from high_frequency_trading.hft.market import ELOMarket
 from high_frequency_trading.hft.event import ELOEvent
 from primitives.base_market_proxy import BaseMarketProxy
-import settings 
 
 class ELOMarketProxy(BaseMarketProxy):
     market_event_headers = ('E', 'Q')

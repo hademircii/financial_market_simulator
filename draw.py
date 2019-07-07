@@ -126,7 +126,7 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
 
 
 if __name__ == '__main__':
-    print(elo_draw(10, settings.random_orders_defaults))
+    print(elo_draw(10, settings.SIMULATION_PARAMETERS))
 
 
      
