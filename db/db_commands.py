@@ -2,7 +2,9 @@ from db.db import ELOMarket, ELOAgent
 from db.conf import psql_db
 import csv
 import datetime
+import logging
 
+log = logging.getLogger(__name__)
 models = [ELOMarket, ELOAgent]
 
 
@@ -20,21 +22,24 @@ def get_session_data(session_id, model_cls):
     return model_cls.select().where(model_cls.subsession_id == session_id).order_by(
         model_cls.timestamp)
 
-export_path = 'exports/{record_class}_accessed_{timestamp}.csv'
+export_path = 'exports/{session_id}_{record_class}_accessed_{timestamp}.csv'
 
-def export_csv(session_id, record_class):
-    def write_csv(path, raw_data, fieldnames):
-        with open(path, 'w') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
-            writer.writeheader()
-            for row in raw_data:
-                writer.writerow(row)
+def export_csv(session_id, record_class, dest=None):
     timestamp = datetime.datetime.now()
     fieldnames = record_class.csv_meta
-    file_path = export_path.format(record_class=record_class.__name__, 
-        timestamp=timestamp)
+    if not dest:
+        # then write to file in the system
+        dest = export_path.format(session_id=session_id, 
+            record_class=record_class.tag, timestamp=timestamp)
     query = get_session_data(session_id, record_class)
-    write_csv(file_path, query.dicts(), fieldnames)
+    with open(dest, 'w') as filelike:
+        log.debug('writing as csv: headers %s: %s' % (fieldnames, dest))
+        writer = csv.DictWriter(filelike, fieldnames=fieldnames, 
+                                extrasaction='ignore')
+        writer.writeheader()
+        for row in query.dicts():
+            writer.writerow(row)
+    return filelike
 
 def export_session(session_id):
     for model_cls in models:

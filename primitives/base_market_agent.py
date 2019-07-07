@@ -7,13 +7,13 @@ from db import db
 from collections import deque
 import utility
 import settings
+import logging
 
-def generate_account_id(size=4):
-    return ''.join(choice(string.ascii_uppercase) for i in range(size))
+log = logging.getLogger(__name__)
 
 
 class BaseMarketAgent:
-
+    tag = 'agent'
     _ids = count(1, 1)
     event_cls = ELOEvent
     typecode = ''
@@ -22,7 +22,8 @@ class BaseMarketAgent:
                     event_emitters=None):
         self.id = next(self._ids)
         self.session_id = session_id
-        self.account_id = account_id or generate_account_id()
+        self.model = None   # trader model plugs here..
+        self.account_id = account_id or utility.generate_account_id()
         self.trader_model = None
         self._exchange_connection = None
         self.event_emitters = event_emitters
@@ -39,21 +40,23 @@ class BaseMarketAgent:
             msg, delay = self.outgoing_msg.popleft()
             self._exchange_connection.sendMessage(msg, delay)
 
-    @db.freeze_state('trader_model')     
+    @db.freeze_state()     
     def handle_JSON(self, message: dict):
         pass
 
-    @db.freeze_state('trader_model')     
+    @db.freeze_state()     
     def handle_OUCH(self, msg: IncomingOuchMessage):
         raise NotImplementedError()
 
-    @db.freeze_state('trader_model')        
-    def handle_discrete_event(self, event_data:dict):
+    @db.freeze_state()        
+    def handle_discrete_event(self, event_data: dict):
         raise NotImplementedError()
     
     def process_event(self, event):
         while event.exchange_msgs:
             e_msg = event.exchange_msgs.pop()
+            log.info('responding %s event with message ---> %s' % (event.event_type,
+                e_msg))
             self.exchange_connection.sendMessage(e_msg.translate(), e_msg.delay)
 
     def ready(self):

@@ -35,7 +35,3 @@ class OUCHClientFactory(ClientFactory):
         log.info('connecting to the exchange at %s' % addr)
         conn = self.protocol(self.trader)
         return conn
-
-    # def clientConnectionLost(self, connector, reason):
-    #     log.info('reconnecting..')
-    #     connector.connect()

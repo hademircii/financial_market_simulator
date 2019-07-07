@@ -27,8 +27,6 @@ class DiscreteEventEmitter:
                 row_as_dict['type'] = self.name
                 reactor.callLater(arrival_time, self.owner.handle_discrete_event, row_as_dict)
                 self.previous_state = row
-
-
     
     def has_changed(self, incoming_row):
         return True

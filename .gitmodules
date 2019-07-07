@@ -1,3 +1,6 @@
 [submodule "high_frequency_trading"]
 	path = high_frequency_trading
 	url = https://github.com/Leeps-Lab/high_frequency_trading
+[submodule "exchange_server"]
+	path = exchange_server
+	url = git@github.com:Leeps-Lab/exchange_server.git

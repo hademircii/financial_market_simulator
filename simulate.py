@@ -1,29 +1,81 @@
+# elo simulation
+import sys
+from honcho.manager import Manager
+import settings
 import configargparse
-import honcho.manager
-import logging as log
+from utility import random_chars
+import numpy as np
+from db.db import session_results_ready
+from db.db_commands import export_session
+import logging
 
+log = logging.getLogger(__name__)
+
+# assume matching engines are listening
 p = configargparse.getArgParser()
-p.add('--host', default='127.0.0.1')
-p.add('--focal_exchange_host', default='127.0.0.1')
-p.add('--focal_exchange_port', default=9001, help='OUCH port to listen on')
-p.add('--external_exchange_host', default=None)
-p.add('--external_exchange_port', default=None)
-p.add('--focal_proxy_ouch_port', default=9201)
-p.add('--focal_proxy_json_port', default=9202)
-p.add('--external_proxy_ouch_port', default=None)
-p.add('--external_proxy_json_port', default=None)
-p.add('--num_dynamic_agents', default=1)
-p.add('--logfile', default=None, type=str)
+p.add('--debug', action='store_true')
 options, args = p.parse_known_args()
 
-dynamic_agent_ports = range(9301,9399)
+def run_elo_simulation(session_code, settings: dict, random_seed=np.random.randint(
+                       0, 99)):
+    """
+    given a session code and valid config dictionary
+    runs a a simulation of ELO type
+    blocks until the all agents write a market_end event
+    to db otherwise timeouts
+    returns session data as two csv formatted files
+    one for markets, one for agents
+    """ 
+    # commands to run each process
+    # one proxy per exchange
+    # one pacemaker agent per proxy
+    p  = settings.ports
+    session_dur = settings.simulation_parameters['session_duration']
+    # (cmd, process_name)
+    focal_proxy = 'python run_proxy.py --ouch_port {0} --json_port {1} \
+            --session_code {2} --exchange_port {3} --tag focal'.format(
+                p['focal_proxy_ouch_port'], p['focal_proxy_json_port'], 
+                session_code, p['focal_exchange_port']), 'focal_proxy'
+    external_proxy = 'python run_proxy.py --debug --ouch_port {0} --json_port {1} \
+        --session_code {2} --exchange_port {3} --tag external'.format(
+            p['external_proxy_ouch_port'], p['external_proxy_json_port'], 
+            session_code, p['external_exchange_port']), 'external_proxy'
+    
+    rabbit_agent_focal = 'python run_agent.py --session_duration {0} --exchange_ouch_port {1} \
+        --session_code {2} --agent_type rabbit --config_num {3} --random_seed {4}'.format(
+            session_dur, p['focal_proxy_ouch_port'], 
+        # config number is set 0, it is irrelevant for this agent type
+            session_code, 0, random_seed), 'rabbit_agent_focal'
+    rabbit_agent_external = 'python run_agent.py --session_duration {0} --exchange_ouch_port {1} \
+        --session_code {2} --agent_type rabbit --config_num {3} --random_seed {4}'.format(
+            session_dur, p['external_proxy_ouch_port'], 
+            session_code, 0, random_seed), 'rabbit_agent_external'
 
-# this will not run matching engines, 
-# assumes they are already there and listening
-# on specified addresses and ports
+    interactive_agents = []
+    for i in range(settings.num_interactive_agents):
+        agent_i = """python run_agent.py --session_duration {0} --exchange_ouch_port {1} \
+            --exchange_json_port {2}  --external_exchange_host 127.0.0.1 \
+            --external_exchange_json_port {3} --session_code {4} \
+            --agent_type elo --config_num {5} --debug""".format(
+                session_dur, p['focal_proxy_ouch_port'], 
+                p['focal_proxy_json_port'], p['external_proxy_json_port'],
+                session_code, i), 'dynamic_agent_{0}'.format(i)
+        interactive_agents.append(agent_i)
 
-def main():
-    log.basicConfig(level= log.DEBUG if options.debug else log.INFO,
-        format = "[%(asctime)s.%(msecs)03d] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
-        datefmt = '%H:%M:%S',
-        filename = options.logfile)
+
+    m = Manager()
+    for pair in [focal_proxy, external_proxy, rabbit_agent_focal, 
+                    rabbit_agent_external] + interactive_agents:
+        cmd, process_tag = pair[0], pair[1] 
+        if options.debug:
+            cmd += ' --debug'
+        m.add_process(process_tag, cmd)
+    m.loop()
+    if m.returncode == 0 and session_results_ready(session_code):
+        export_session(session_code)
+        log.info('session %s complete!' % session_code)
+
+
+if __name__ == '__main__':
+    session_code = random_chars(8)
+    run_elo_simulation(session_code, settings)

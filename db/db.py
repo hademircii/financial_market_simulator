@@ -1,38 +1,39 @@
 from peewee import *
 import datetime
 from high_frequency_trading.hft.utility import serialize_in_memo_model
-import os
-import utility
 from .conf import psql_db
+import time
+import logging
+
+log = logging.getLogger(__name__)
 
 
-def get_db_model(model_key):
+def get_db_model(entity_tag):
     try:
-        return in_memo_to_db_model_table[model_key]
+        return in_memo_to_db_model_table[entity_tag]
     except KeyError:
-        raise Exception('invalid model key %s' % model_key)
+        raise Exception('invalid model tag %s' % entity_tag)
 
 
 def write_to_db(model_class, **kwargs):
 # TODO: bulk inserts and queueing
     model_class.create(**kwargs)
 
-def freeze_state(field_name):
+def freeze_state():
+    attr_name = 'model'
     def decorator(func):
         def db_recorded(market_entity, *args, **kwargs):
             event = func(market_entity, *args, **kwargs)
             if event:
-                model_to_record = getattr(market_entity, field_name)
-                try:
-                    ftf = utility.fields_to_freeze[field_name]
-                except KeyError:
-                    raise Exception('invalid field name %s' % field_name)
+                model_to_record = getattr(market_entity, attr_name)
+                ftf = get_freezed_fields_by_class(market_entity.tag)
                 props = ftf['properties_to_serialize']
                 subprops = ftf['subproperties_to_serialize']
-                frozen_model = serialize_in_memo_model(model_to_record, props, subprops)
-                db_model_class = get_db_model(field_name)
+                frozen_model = serialize_in_memo_model(model_to_record, 
+                        props, subprops)
+                db_model_class = get_db_model(market_entity.tag)
                 write_to_db(db_model_class, trigger_msg_type=event.event_type, 
-                    **frozen_model)
+                        **frozen_model)
         return db_recorded
     return decorator
 
@@ -45,9 +46,11 @@ class BaseModel(Model):
         database = psql_db
 
 class ELOMarket(BaseModel):
+    tag = 'market'
 
     csv_meta = (
-    'timestamp', 'subsession_id', 'market_id', 'trigger_event_type',
+    'timestamp', 'subsession_id',
+    'market_id', 'trigger_msg_type',
     'reference_price', 'best_bid', 'best_offer', 
     'next_bid', 'next_offer', 'volume_at_best_bid', 'volume_at_best_offer', 
     'e_best_bid', 'e_best_offer', 'signed_volume', 'e_signed_volume')
@@ -69,6 +72,7 @@ class ELOMarket(BaseModel):
 
 
 class ELOAgent(BaseModel):
+    tag = 'agent'
 
     csv_meta = (
     'timestamp', 'subsession_id', 'account_id', 'trigger_msg_type',
@@ -121,6 +125,74 @@ class ELOAgent(BaseModel):
     signed_volume = FloatField()
     e_signed_volume = FloatField()    
 
+def session_results_ready(session_id, timeout=10):
+    t = 0
+    sleep_dur = 0.5
+    while t < timeout:
+        starters_count = ELOAgent.select().where(
+            (ELOAgent.subsession_id == session_id) &  
+            (ELOAgent.trigger_msg_type == 'market_start')
+        ).count()
+        closers_count = ELOAgent.select().where(
+            (ELOAgent.subsession_id == session_id) &  
+            (ELOAgent.trigger_msg_type == 'market_end')
+        ).count()
+        if starters_count == closers_count != 0:
+            log.warning('session %s results ready, number of agents %s.' % (
+                    session_id, closers_count))
+            return True
+        else:
+            time.sleep(sleep_dur)
+            t += sleep_dur
+            log.warning('waiting for session %s results. starters: %s, closers %s' % (
+                session_id, starters_count, closers_count))
+    log.warning('error: timeout waiting session %s' % session_id)
+
+        
 in_memo_to_db_model_table = {
-    'trader_model': ELOAgent, 'market': ELOMarket
+    'agent': ELOAgent, 'market': ELOMarket
 }
+
+
+
+fields_to_freeze =  {
+    'agent': {
+        'events_to_capture': ('speed_change', 'role_change', 'slider', 
+                'market_start', 'market_end', 'A', 'U', 'C', 'E'),
+        'properties_to_serialize': (
+            'subsession_id', 'market_id', 'id_in_market', 'player_id', 'delay', 
+            'staged_bid', 'staged_offer', 'net_worth', 'cash', 'cost', 'tax_paid',
+            'speed_cost', 'implied_bid', 'implied_offer', 'best_bid_except_me',
+            'best_offer_except_me', 'account_id'),
+        'subproperties_to_serialize': {
+            'trader_role': ('trader_model_name', ),
+            'sliders': ('slider_a_x', 'slider_a_y', 'slider_a_z'),
+            'orderstore': ('inventory', 'bid', 'offer', 'firm'),
+            'inventory': ('position', ),
+            'market_facts': (
+                'reference_price', 'best_bid', 'best_offer', 
+                'signed_volume', 'e_best_bid', 'e_best_offer', 'e_signed_volume',
+                'next_bid', 'next_offer', 'volume_at_best_bid', 'volume_at_best_offer')
+        }
+    },
+    'market': {
+        'events_to_capture': ('Q', 'E', 'market_start', 'market_end',
+            'external_feed'), 
+        'properties_to_serialize': ('subsession_id', 'market_id'),
+        'subproperties_to_serialize': {
+            'bbo': ('best_bid', 'best_offer', 'next_bid', 'next_offer', 
+                    'volume_at_best_bid', 'volume_at_best_offer'),
+            'external_feed': ('e_best_bid', 'e_best_offer', 'e_signed_volume'),
+            'signed_volume': ('signed_volume', ),
+            'reference_price': ('reference_price', ),
+        }
+    }
+}
+
+
+def get_freezed_fields_by_class(entity_tag):
+    try: return fields_to_freeze[entity_tag]
+    except KeyError: raise Exception('%s is invalid entity tag' % entity_tag)
+
+
+

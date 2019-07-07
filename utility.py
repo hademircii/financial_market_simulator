@@ -1,43 +1,60 @@
 from high_frequency_trading.hft.incoming_message import IncomingWSMessage, IncomingMessage
+from twisted.internet import reactor, error
 from random import randint, choice
 import string
 import csv
+import logging
+import yaml
+
+log = logging.getLogger(__name__)
 
 SESSION_CODE_CHARSET = string.ascii_lowercase + string.digits  # otree <3
+
+
+def generate_account_id(size=4):
+    return ''.join(choice(string.ascii_uppercase) for i in range(size))
 
 def random_chars(num_chars):
     return ''.join(choice(SESSION_CODE_CHARSET) for _ in range(num_chars))    
 
 def transform_incoming_message(source, message, external_market_state=None):
-    
-    if source == 'external':
+    """ this handles mismatches between the otree app and simulator"""
+    def transform_external_proxy_msg(message):
+        """
+        traders in elo environment treat one of the
+        markets as external, format the message so 
+        correct handlers are activated on trader model
+        """
         if message['type'] == 'reference_price':
-             message['type'] = 'external_reference_price'
+            message['type'] = 'external_reference_price'
+            return message
         if not external_market_state:
-            raise Exception('external_market_state is none.')
+            raise Exception('external_market_state is not set.')
         if message['type'] == 'bbo':
             message['e_best_bid'] = message['best_bid']   
             message['e_best_offer'] = message['best_offer']
             external_market_state['e_best_bid'] = message['best_bid']   
             external_market_state['e_best_offer'] = message['best_offer']
             message['e_signed_volume'] = external_market_state['e_signed_volume']
-            if message['e_signed_volume'] is None:
-                message['e_signed_volume'] = 0
-            message['type'] = 'external_feed_change'
+            # if message['e_signed_volume'] is None:
+            #     message['e_signed_volume'] = 0
         if message['type'] == 'signed_volume':
             message['e_signed_volume'] = message['signed_volume']
             message['e_best_bid'] = external_market_state['e_best_bid']   
             message['e_best_offer'] = external_market_state['e_best_offer']
             external_market_state['e_signed_volume'] = message['signed_volume']
-            message['type'] = 'external_feed_change'
+        message['type'] = 'external_feed_change'
+        return message
+    message['subsession_id'] = 0
+    message['market_id'] = 0
+    if source == 'external':
+        message = transform_external_proxy_msg(message)
     if message['type'] == 'bbo':
         message['type'] = 'bbo_change'
     if message['type'] == 'signed_volume':
         message['type'] = 'signed_volume_change'
     if 'technology_on' in message:
         message['value'] = message['technology_on']
-    message['subsession_id'] = 0
-    message['market_id'] = 0
     return message
 
 def generate_random_test_orders(num_orders, session_duration):
@@ -70,6 +87,12 @@ def read_agent_events_from_csv(path):
             input_lists[agent_num - 1]['slider'].append(slider_row)
     return input_lists
 
+def stop_running_reactor(reactor):
+    try:
+        reactor.stop()
+    except error.ReactorNotRunning:
+        pass
+
 
 def get_mock_market_msg(market_facts:dict, msg_type:str):
     mock_msg = market_facts
@@ -88,42 +111,20 @@ class MockWSMessage(IncomingWSMessage):
         return message
 
 
-incoming_message_defaults = {
-    'subsession_id': 0,  'market_id': 0, 'player_id': 0}
+incoming_message_defaults = {'subsession_id': 0,  'market_id': 0, 'player_id': 0}
 
+def read_yaml(path: str):
+    with open(path, 'r') as f:
+        try:
+            config = yaml.load(f)
+        except yaml.YAMLError as e:
+            raise e
+    return config
 
-fields_to_freeze =  {
-    'trader_model': {
-        'events_to_capture': ('speed_change', 'role_change', 'slider', 
-                'market_start', 'market_end', 'A', 'U', 'C', 'E'),
-        'properties_to_serialize': (
-            'subsession_id', 'market_id', 'id_in_market', 'player_id', 'delay', 
-            'staged_bid', 'staged_offer', 'net_worth', 'cash', 'cost', 'tax_paid',
-            'speed_cost', 'implied_bid', 'implied_offer', 'best_bid_except_me',
-            'best_offer_except_me', 'account_id'),
-        'subproperties_to_serialize': {
-            'trader_role': ('trader_model_name', ),
-            'sliders': ('slider_a_x', 'slider_a_y', 'slider_a_z'),
-            'orderstore': ('inventory', 'bid', 'offer', 'firm'),
-            'inventory': ('position', ),
-            'market_facts': (
-                'reference_price', 'best_bid', 'best_offer', 
-                'signed_volume', 'e_best_bid', 'e_best_offer', 'e_signed_volume',
-                'next_bid', 'next_offer', 'volume_at_best_bid', 'volume_at_best_offer')
-        }
-    },
-    'market': {
-        'events_to_capture': ('Q', 'E', 'market_start', 'market_end',
-            'external_feed'), 
-        'properties_to_serialize': ('subsession_id', 'market_id'),
-        'subproperties_to_serialize': {
-            'bbo': ('best_bid', 'best_offer', 'next_bid', 'next_offer', 
-                    'volume_at_best_bid', 'volume_at_best_offer'),
-            'external_feed': ('e_best_bid', 'e_best_offer', 'e_signed_volume'),
-            'signed_volume': ('signed_volume', ),
-            'reference_price': ('reference_price', ),
-        }
-    }
-}
-
+def augment_setings(custom_parameters, settings):
+    merged_settings = settings.copy()
+    for k, v in custom_parameters.items():
+        if k in merged_settings:
+            merged_settings[k] = v
+    return merged_settings
 

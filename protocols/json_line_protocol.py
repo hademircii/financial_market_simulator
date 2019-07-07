@@ -8,10 +8,11 @@ import logging
 log = logging.getLogger(__name__)
 
 # well this is a quick solution to send
-# json over network, obviously newline 
-# character \n is not allowed in these messages
+# json over network, a line oriented protocol
+# obviously newline character \n is not allowed
+#  in these messages
 
-# I should revisit this once we write a protocol
+# I should revisit this after I write a protocol
 # for public messages
 
 class JSONLineServerProtocol(basic.LineReceiver):
@@ -77,7 +78,7 @@ class JSONLineServerFactory(protocol.ServerFactory):
             raise ValueError('new line character is not allowed: %s' % json_msg)
         connections = [conn for conn in self.users.values()]
         bytes_json_msg = bytes(json_msg, 'utf-8')
-        log.debug('broadcasting to: %s --> %s ' % (':'.join(c.account_id 
+        log.info('broadcasting to: %s --> %s ' % (':'.join(c.account_id 
                   for c in connections), msg))
         if connections:
             if shuffle:

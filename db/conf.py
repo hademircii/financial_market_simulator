@@ -8,3 +8,4 @@ db_password = os.getenv('DBPASSWORD')
 
 psql_db = PostgresqlDatabase(db_name, user=db_user, 
     password=db_password, host=host)
+
