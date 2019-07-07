@@ -3,6 +3,7 @@ from high_frequency_trading.hft.incoming_message import IncomingOuchMessage
 from utility import incoming_message_defaults
 from high_frequency_trading.exchange_server.OuchServer import ouch_messages
 from high_frequency_trading.hft.exchange import OUCH
+from high_frequency_trading.hft.exchange_message import ResetMessage
 import random
 import logging
 
@@ -29,7 +30,8 @@ class ProxyOuchServerProtocol(OUCH):
     def handle_incoming_data(self, header):
         original_msg = bytes(self.buffer)
         msg = IncomingOuchMessage(
-            original_msg, message_cls=self.message_cls, **incoming_message_defaults)
+            original_msg, message_cls=self.message_cls, 
+            **incoming_message_defaults)
         if self.state == 'GETACCOUNTID':
             try:
                 account_id = msg.firm
@@ -48,7 +50,6 @@ class ProxyOuchServerProtocol(OUCH):
 
 class ProxyOuchServerFactory(protocol.ServerFactory): 
     protocol = ProxyOuchServerProtocol
-
 
     def __init__(self, market):
         super()
@@ -80,8 +81,9 @@ class ProxyOuchClient(OUCH):
     }
     message_cls = ouch_messages.OuchServerMessages
 
-    def __init__(self, market):
+    def __init__(self, factory, market):
         super().__init__()
+        self.factory = factory
         self.market = market 
 
     def handle_incoming_data(self, header):
@@ -92,6 +94,14 @@ class ProxyOuchClient(OUCH):
 
     def connectionMade(self):
         log.info('connected to exchange')
+        if not self.factory.reset_message_sent:
+            msg = ResetMessage.create(
+                'reset_exchange', exchange_host='', 
+                exchange_port=0, delay=0, 
+                event_code='S', timestamp=0)
+            self.sendMessage(msg.translate(), 0)
+            self.factory.reset_message_sent = True
+
 
 
 class ProxyOuchClientFactory(protocol.ClientFactory):
@@ -101,8 +111,9 @@ class ProxyOuchClientFactory(protocol.ClientFactory):
     def __init__(self, market):
         super()
         self.market = market
+        self.reset_message_sent = False
 
     def buildProtocol(self, addr):
-        conn = self.protocol(self.market)
+        conn = self.protocol(self, self.market)
         self.market.exchange_connection = conn
         return conn
