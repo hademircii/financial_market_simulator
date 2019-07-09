@@ -3,7 +3,7 @@ a tool to create systems / networks with financial market contexts
 installation:
 =============
 
-this is tested with python 3.5 - 3.6 - 3.7
+this is tested with python 3.5 - 3.6 - 3.7.
 postgres database must be installed.
 follow this `link`_ for instructions.
 
