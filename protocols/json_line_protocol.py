@@ -30,6 +30,9 @@ class JSONLineServerProtocol(basic.LineReceiver):
             del self.users[self.account_id]
     
     def lineReceived(self, line):
+        str_line = line
+        if isinstance(line, bytes):
+            str_line = line.decode('utf-8')
         try:
             dict_msg = json.loads(line)
         except:
@@ -100,11 +103,15 @@ class JSONLineClientProtocol(basic.LineReceiver):
         self.sendLine(bytes(msg, 'utf-8'))
         
     def lineReceived(self, line):
+        str_line = line
+        if isinstance(line, bytes):
+            str_line = line.decode('utf-8')
         try:
-            dict_msg = json.loads(line)
+            dict_msg = json.loads(str_line)
         except:
             log.warning('failed to convert line to json, ignoring: %s' % line)
-        self.trader.handle_JSON(dict_msg, self.type_code)
+        else:
+            self.trader.handle_JSON(dict_msg, self.type_code)
 
 
 class JSONLineClientFactory(protocol.ClientFactory):

@@ -5,7 +5,6 @@ from high_frequency_trading.hft.incoming_message import IncomingMessage
 import utility
 import string
 from random import choice
-import settings
 import logging
 
 log = logging.getLogger(__name__)
@@ -29,8 +28,9 @@ class DynamicAgent(BaseMarketAgent):
 
     def __init__(self, session_id, *args, **kwargs):
         super().__init__(session_id, *args, **kwargs)
-        self.model = self.trader_model_cls(self.session_id, 0, self.id, self.id, 'automated', 
-                '', 0, firm=self.account_id)
+        self.model = self.trader_model_cls(
+            self.session_id, 0, self.id, self.id, 'automated', '', 0, 
+            firm=self.account_id)
         # the agent expects an external feed message
         # with fields e_best_bid e_best_offer e_signed_volume
         # so I need a hack as market proxies always send those 
@@ -42,7 +42,7 @@ class DynamicAgent(BaseMarketAgent):
     def ready(self):
         super().ready()
         msg = utility.get_mock_market_msg(
-            settings.get_traders_initial_market_view(), 'market_start')
+            utility.get_traders_initial_market_view(), 'market_start')
         event = self.event_cls('initial state', msg)
         self.model.handle_event(event)
         return event

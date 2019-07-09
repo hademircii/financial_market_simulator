@@ -1,6 +1,7 @@
 from high_frequency_trading.hft.incoming_message import IncomingWSMessage, IncomingMessage
 from twisted.internet import reactor, error
 from random import randint, choice
+import settings
 import string
 import csv
 import logging
@@ -9,6 +10,45 @@ import yaml
 log = logging.getLogger(__name__)
 
 SESSION_CODE_CHARSET = string.ascii_lowercase + string.digits  # otree <3
+
+
+def get_simulation_parameters():
+    custom_parameters = read_yaml(settings.custom_config_path)
+    merged_parameters = settings.default_simulation_parameters.copy()
+    if custom_parameters:
+        for k, v in custom_parameters.items():
+            if k in merged_parameters:
+                merged_parameters[k] = v
+    return merged_parameters
+
+
+def get_agent_state_config(config_number=None):
+    events = read_agent_events_from_csv(settings.agent_event_config_path)
+    if config_number is not None:
+        try:
+            result = events[config_number]
+        except IndexError:
+            log.error('invalid config number %s.' % config_number)
+        else:
+            return result
+    else:
+        return events
+
+
+def get_interactive_agent_count():
+    result = len(get_agent_state_config())
+    log.info('%s agents found in event configurations.' % result)
+    return result
+
+
+def get_traders_initial_market_view():
+    result = settings.initial_trader_market_view
+    for k, v in get_simulation_parameters().items():
+        if k in result:
+            result[k] = v
+    log.info('initial market view of trader: %s' % ' '.join(
+                '{0}:{1}'.format(k, v) for k, v in result.items()))
+    return result
 
 
 def dict_stringify(dict_to_str):

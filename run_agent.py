@@ -1,13 +1,14 @@
 import configargparse
 from twisted.internet import reactor
 import draw
+import settings
 from discrete_event_emitter import *
 from agents.pacemaker_agent import PaceMakerAgent
 from agents.dynamic_agent import DynamicAgent 
 from protocols.ouch_trade_client_protocol import OUCHClientFactory
 from protocols.json_line_protocol import JSONLineClientFactory
-from utility import random_chars, generate_account_id, stop_running_reactor
-import settings
+from utility import (
+    random_chars, generate_account_id, stop_running_reactor, get_simulation_parameters)
 import logging as log
 
 
@@ -22,23 +23,24 @@ p.add('--exchange_json_port', type=int)
 p.add('--external_exchange_host')
 p.add('--external_exchange_json_port', type=int)
 p.add('--agent_type', choices=['rabbit', 'elo'], required=True)
-p.add('--config_num', required=True, type=int, help='The configuration number, \
+p.add('--config_num', default=0, type=int, help='The configuration number, \
        index in the list of discrete event configurations')
 p.add('--random_seed', type=int)
 options, args = p.parse_known_args()
         
         
-def main(account_id, settings: dict):
+def main(account_id):
     agent_type = options.agent_type
     session_duration = options.session_duration
     if agent_type == 'rabbit':
-        random_orders = draw.elo_draw(session_duration, settings.SIMULATION_PARAMETERS,
+        random_orders = draw.elo_draw(
+            session_duration, get_simulation_parameters(),
             seed=options.random_seed)
         event_emitters = [RandomOrderEmitter(source_data=random_orders), ]
         agent_cls = PaceMakerAgent
 
     elif agent_type == 'elo':
-        events = settings.AGENT_STATE_CONFS[options.config_num]
+        events = utility.get_agent_state_config(config_number=options.config_num)
         event_emitters = [ELOSliderChangeEmitter(source_data=events['slider']), 
             ELOSpeedChangeEmitter(source_data=events['speed'])]
         agent_cls = DynamicAgent
@@ -73,5 +75,5 @@ if __name__ == '__main__':
         format = "[%(asctime)s.%(msecs)03d] %(levelname)s \
             [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
         datefmt = '%H:%M:%S')
-    main(account_id, settings)
+    main(account_id)
     

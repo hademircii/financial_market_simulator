@@ -1,8 +1,7 @@
 from flask import Flask, jsonify
 from simulate import run_elo_simulation
-from utility import random_chars, dict_stringify
+from utility import random_chars, dict_stringify, get_simulation_parameters
 import subprocess
-import settings
 
 app = Flask(__name__)
 
@@ -15,6 +14,8 @@ does not block, and responds to client right away.
 runs simulation asyncly
 """
 
+success_message = """scheduled simulation: code --> %s, parameters --> %s"""
+
 
 @app.route('/v1/simulate', methods=['POST'])
 def simulate():
@@ -26,13 +27,10 @@ def simulate():
         return respond_with_message('simulator already running', 503)
     else:
         session_code = random_chars(8)
-        settings.refresh_agent_state_configs()
-        settings.refresh_simulation_parameters()
-        simulator_process = subprocess.Popen(['python', 'simulate.py', '--debug'])
-        params_str = dict_stringify(settings.SIMULATION_PARAMETERS)
-        return respond_with_message(
-            'simulation is scheduled with id: %s and parameters --> %s' % (
-                session_code, params_str), 200)
+        simulator_process = subprocess.Popen(
+            ['python', 'simulate.py', '--debug', '--session_code', session_code])
+        params_str = dict_stringify(get_simulation_parameters())
+        return respond_with_message(success_message % (session_code, params_str), 200)
 
 
 def respond_with_message(message: str, response_code):

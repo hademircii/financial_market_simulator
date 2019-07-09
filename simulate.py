@@ -3,7 +3,8 @@ import sys
 from honcho.manager import Manager
 import settings
 import configargparse
-from utility import random_chars
+from utility import (
+    random_chars, get_interactive_agent_count, get_simulation_parameters)
 import numpy as np
 from db.db import session_results_ready
 from db.db_commands import export_session
@@ -14,13 +15,14 @@ log = logging.getLogger(__name__)
 # assume matching engines are listening
 p = configargparse.getArgParser()
 p.add('--debug', action='store_true')
+p.add('--session_code', default=random_chars(8), type=str)
 options, args = p.parse_known_args()
 
 
-def run_elo_simulation(session_code, settings: dict, random_seed=np.random.randint(
-                       0, 99)):
+def run_elo_simulation(
+        session_code, random_seed=np.random.randint(0, 99)):
     """
-    given a session code and valid config dictionary
+    given a session code
     runs a a simulation of ELO type
     blocks until the all agents write a market_end event
     to db otherwise timeouts
@@ -37,7 +39,7 @@ def run_elo_simulation(session_code, settings: dict, random_seed=np.random.randi
     # one proxy per exchange
     # one pacemaker agent per proxy
     p = settings.ports
-    session_dur = settings.SIMULATION_PARAMETERS['session_duration']
+    session_dur = get_simulation_parameters()['session_duration']
     # (cmd, process_name)
     focal_proxy = 'python run_proxy.py --ouch_port {0} --json_port {1} \
             --session_code {2} --exchange_port {3} --tag focal'.format(
@@ -51,7 +53,6 @@ def run_elo_simulation(session_code, settings: dict, random_seed=np.random.randi
     rabbit_agent_focal = 'python run_agent.py --session_duration {0} --exchange_ouch_port {1} \
         --session_code {2} --agent_type rabbit --config_num {3} --random_seed {4}'.format(
             session_dur, p['focal_proxy_ouch_port'],
-        # config number is irrelevant for this agent type
             session_code, 0, random_seed), 'rabbit_agent_focal'
     rabbit_agent_external = 'python run_agent.py --session_duration {0} --exchange_ouch_port {1} \
         --session_code {2} --agent_type rabbit --config_num {3} --random_seed {4}'.format(
@@ -59,7 +60,7 @@ def run_elo_simulation(session_code, settings: dict, random_seed=np.random.randi
             session_code, 0, random_seed), 'rabbit_agent_external'
 
     interactive_agents = []
-    for i in range(settings.get_interactive_agent_count()):
+    for i in range(get_interactive_agent_count()):
         agent_i = """python run_agent.py --session_duration {0} --exchange_ouch_port {1} \
             --exchange_json_port {2}  --external_exchange_host 127.0.0.1 \
             --external_exchange_json_port {3} --session_code {4} \
@@ -83,5 +84,4 @@ def run_elo_simulation(session_code, settings: dict, random_seed=np.random.randi
 
 
 if __name__ == '__main__':
-    session_code = random_chars(8)
-    run_elo_simulation(session_code, settings)
+    run_elo_simulation(options.session_code)

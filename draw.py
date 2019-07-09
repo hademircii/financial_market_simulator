@@ -1,9 +1,9 @@
 import numpy as np 
 from high_frequency_trading.hft.equations import price_grid
-import settings
 import logging
 
 log = logging.getLogger(__name__)
+
 
 class ContextSeed:
     """
@@ -56,7 +56,7 @@ def draw_arrival_times(size, period_length, distribution=np.random.uniform, **kw
 
 
 def draw_noise(size, period_length, distribution=np.random.normal, 
-        cumsum=False, **kwargs):
+               cumsum=False, **kwargs):
     arr = distribution(size=size, **kwargs)
     if cumsum:
         arr.cumsum()
@@ -64,27 +64,30 @@ def draw_noise(size, period_length, distribution=np.random.normal,
 
 
 def _elo_asset_value_arr(initial_price, period_length, loc_delta, scale_delta, 
-        lambdaJ):
+                         lambdaJ):
     """
     generate a sequence of asset values and asset value jump times
     """
     f_size = int(lambdaJ * period_length)
-    f_price_change_times = draw_arrival_times(f_size, period_length, 
-        low=0.0, high=period_length)
+    f_price_change_times = draw_arrival_times(
+        f_size, period_length, low=0.0, high=period_length)
     num_f_price_changes = f_price_change_times.size
-    f_prices = np.random.normal(size=num_f_price_changes, loc=loc_delta, 
-                    scale=scale_delta).cumsum() + initial_price
+    f_prices = np.random.normal(
+        size=num_f_price_changes, loc=loc_delta, 
+        scale=scale_delta).cumsum() + initial_price
     return np.vstack((f_price_change_times, f_prices)).round(3)
     
 
-def elo_random_order_sequence(asset_value_arr, period_length, loc_noise, 
-        scale_noise, bid_ask_offset, lambdaI, time_in_force, buy_prob=0.5):
+def elo_random_order_sequence(
+        asset_value_arr, period_length, loc_noise, scale_noise, bid_ask_offset, 
+        lambdaI, time_in_force, buy_prob=0.5):
     """
     draws bid/ask prices around fundamental value,
     generate input sequnce for random orders with arrival times as array
     """
     orders_size = np.random.poisson(lam=(1 / lambdaI) * period_length, size=1)
-    order_times = draw_arrival_times(orders_size, period_length, low=0.0, high=period_length)
+    order_times = draw_arrival_times(
+        orders_size, period_length, low=0.0, high=period_length)
     asset_value_jump_times, asset_values = asset_value_arr[0], asset_value_arr[1]
     asset_value_indexes = asof(asset_value_jump_times, order_times)
     asset_value_asof = asset_values[asset_value_indexes]
@@ -120,13 +123,15 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
             conf['noise_mean'], conf['noise_std'], conf['bid_ask_offset'],
             conf['lambdaI'], conf['time_in_force'])
     random_orders = np.swapaxes(random_orders, 0, 1)
-    log.info('%s random orders generated, per second: %s' % (random_orders.shape[0],
-            random_orders.shape[0] / period_length))
+    log.info(
+        '%s random orders generated. period length: %s, per second: %s, '
+        'parameter: %s' % (random_orders.shape[0], period_length, 
+            random_orders.shape[0] / period_length, conf['lambdaI']))
     return random_orders
 
 
 if __name__ == '__main__':
-    print(elo_draw(10, settings.SIMULATION_PARAMETERS))
+    print(elo_draw(20, utility.get_simulation_parameters()))
 
 
      

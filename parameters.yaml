@@ -1,10 +1,10 @@
-session_duration: 20
+session_duration: 10
 initial_price: 1000000
 noise_mean: 0
-noise_std: 30000
+noise_std: 12000
 bid_ask_offset: 50
 lambdaJ: 0.5
-lambdaI: 0.1
+lambdaI: 0.5
 time_in_force: 5
 tax_rate: 0.1
 k_reference_price: 0.01
