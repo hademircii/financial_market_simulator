@@ -45,3 +45,5 @@ initial_trader_market_view = {
     'tax_rate': default_simulation_parameters['tax_rate'],
     'reference_price': default_simulation_parameters['initial_price']
 }
+
+python_path = 'python'
