@@ -34,7 +34,7 @@ class JSONLineServerProtocol(basic.LineReceiver):
         if isinstance(line, bytes):
             str_line = line.decode('utf-8')
         try:
-            dict_msg = json.loads(line)
+            dict_msg = json.loads(str_line)
         except:
             log.exception('failed to convert line to json, ignoring: %s' % line)
         else:
