@@ -41,27 +41,27 @@ def run_elo_simulation(
     p = settings.ports
     session_dur = get_simulation_parameters()['session_duration']
     # (cmd, process_name)
-    focal_proxy = 'python run_proxy.py --ouch_port {0} --json_port {1} \
+    focal_proxy = 'run_proxy.py --ouch_port {0} --json_port {1} \
             --session_code {2} --exchange_port {3} --tag focal'.format(
                 p['focal_proxy_ouch_port'], p['focal_proxy_json_port'],
                 session_code, p['focal_exchange_port']), 'focal_proxy'
-    external_proxy = 'python run_proxy.py --debug --ouch_port {0} --json_port {1} \
+    external_proxy = 'run_proxy.py --debug --ouch_port {0} --json_port {1} \
         --session_code {2} --exchange_port {3} --tag external'.format(
             p['external_proxy_ouch_port'], p['external_proxy_json_port'],
             session_code, p['external_exchange_port']), 'external_proxy'
 
-    rabbit_agent_focal = 'python run_agent.py --session_duration {0} --exchange_ouch_port {1} \
+    rabbit_agent_focal = 'run_agent.py --session_duration {0} --exchange_ouch_port {1} \
         --session_code {2} --agent_type rabbit --config_num {3} --random_seed {4}'.format(
             session_dur, p['focal_proxy_ouch_port'],
             session_code, 0, random_seed), 'rabbit_agent_focal'
-    rabbit_agent_external = 'python run_agent.py --session_duration {0} --exchange_ouch_port {1} \
+    rabbit_agent_external = 'run_agent.py --session_duration {0} --exchange_ouch_port {1} \
         --session_code {2} --agent_type rabbit --config_num {3} --random_seed {4}'.format(
             session_dur, p['external_proxy_ouch_port'],
             session_code, 0, random_seed), 'rabbit_agent_external'
 
     interactive_agents = []
     for i in range(get_interactive_agent_count()):
-        agent_i = """python run_agent.py --session_duration {0} --exchange_ouch_port {1} \
+        agent_i = """run_agent.py --session_duration {0} --exchange_ouch_port {1} \
             --exchange_json_port {2}  --external_exchange_host 127.0.0.1 \
             --external_exchange_json_port {3} --session_code {4} \
             --agent_type elo --config_num {5} --debug""".format(
@@ -76,6 +76,7 @@ def run_elo_simulation(
         cmd, process_tag = pair[0], pair[1]
         if options.debug:
             cmd += ' --debug'
+        cmd = settings.python_path + ' ' + cmd
         m.add_process(process_tag, cmd)
     m.loop()
     if m.returncode == 0 and session_results_ready(session_code):
