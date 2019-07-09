@@ -4,7 +4,7 @@ noise_mean: 0
 noise_std: 12000
 bid_ask_offset: 50
 lambdaJ: 0.5
-lambdaI: 0.5
+lambdaI: 0.1
 time_in_force: 5
 tax_rate: 0.1
 k_reference_price: 0.01

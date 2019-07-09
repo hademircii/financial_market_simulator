@@ -18,7 +18,7 @@ runs simulation asyncly
 success_message = """scheduled simulation: code --> %s, parameters --> %s"""
 
 
-@app.route('/v1/simulate', methods=['POST'])
+@app.route('/v1/simulate', methods=['GET', 'POST'])
 def simulate():
     """ simulator end point, normally this should be receiving
     configurations in request payload, but not a requirement for now
