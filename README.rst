@@ -56,6 +56,24 @@ for application to use while talking to the database.
 
   export DBUSER=simulation_user
   export DBPASSWORD=somepassword
+ 
+ 
+from the root directory
+run
+
+::
+
+  python 
+  
+this will start an interactive python session
+
+::
+
+  from db import db_commands
+  db_commands.create_tables()
+
+this will create the relevant tables in the db.
+  
 
 download and clone this repo
  
