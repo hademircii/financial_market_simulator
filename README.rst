@@ -118,7 +118,7 @@ session-wide static parameters are defined in file parameters.yaml  edit it acco
 
 dynamic parameters (agent's sensitivities, techonolgy subscription) is configured by editing agent_state_configs.csv.
 
-now, go to a browser of your choice and visit http://localhost:5000/v1/simulate . you will get a response message which includes
+now, go to a browser of your choice and visit http://localhost:5000/v1/simulate (or http://localhost:5000/v1/simulate?debug=True to toggle debug mode). you will get a response message which includes
 a session id and parameters, note down this session code since output files will be tagged with this identifier.
 this will trigger a simulation session, which after completion will dump two files in the exports directory.
 
