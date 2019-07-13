@@ -1,6 +1,8 @@
 from high_frequency_trading.hft.incoming_message import IncomingWSMessage, IncomingMessage
 from twisted.internet import reactor, error
 from random import randint, choice
+import subprocess
+import shlex
 import settings
 import string
 import csv
@@ -125,13 +127,6 @@ def read_agent_events_from_csv(path):
             input_lists[agent_num - 1]['speed'].append(speed_row)
             input_lists[agent_num - 1]['slider'].append(slider_row)
     return input_lists
-
-
-def stop_running_reactor(reactor):
-    try:
-        reactor.stop()
-    except error.ReactorNotRunning:
-        pass
 
 
 def get_mock_market_msg(market_facts: dict, msg_type: str):

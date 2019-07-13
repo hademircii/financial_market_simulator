@@ -1,17 +1,17 @@
 import configargparse
-from twisted.internet import reactor
+from twisted.internet import reactor, task
 import settings
 from protocols.ouch_proxy_protocol import (
     ProxyOuchServerFactory, ProxyOuchClientFactory)
 from protocols.json_line_protocol import JSONLineServerFactory
 from primitives.base_market_proxy import BaseMarketProxy
 from proxies.elo_market_proxy import ELOMarketProxy
-from utility import random_chars, stop_running_reactor, get_simulation_parameters
+from utility import random_chars, get_simulation_parameters
 import logging as log
 
 
 p = configargparse.getArgParser()
-p.add('--session_duration', default=9999, type=int,
+p.add('--session_duration', type=int,
       help='session duration in seconds')
 p.add('--debug', action='store_true')
 p.add('--session_code', default=random_chars(8))
@@ -36,7 +36,9 @@ def main(market_proxy_cls: BaseMarketProxy):
                        ProxyOuchClientFactory(proxy_server))
     reactor.listenTCP(options.ouch_port, ProxyOuchServerFactory(proxy_server))
     reactor.listenTCP(options.json_port, JSONLineServerFactory(proxy_server))
-    reactor.callLater(options.session_duration, stop_running_reactor, reactor)
+
+    d = task.deferLater(reactor, options.session_duration, proxy_server.close_session)
+    d.addCallback(lambda _ : reactor.stop())
     reactor.run()
 
 

@@ -39,24 +39,6 @@ class DynamicAgent(BaseMarketAgent):
             'e_signed_volume': 0}
 
     @db.freeze_state()   
-    def ready(self):
-        super().ready()
-        msg = utility.get_mock_market_msg(
-            utility.get_traders_initial_market_view(), 'market_start')
-        event = self.event_cls('initial state', msg)
-        self.model.handle_event(event)
-        return event
-
-    @db.freeze_state()       
-    def close_session(self):
-        msg = utility.get_mock_market_msg({}, 'market_end')
-        event = self.event_cls('market close', msg)
-        self.model.handle_event(event)
-        log.info('agent %s:%s --> closing session %s..' % (
-            self.account_id, self.typecode, self.session_id))
-        return event
-
-    @db.freeze_state()   
     def handle_JSON(self, message: dict, type_code:str):
         clean_message = utility.transform_incoming_message(type_code, message,
             self.external_market_state)

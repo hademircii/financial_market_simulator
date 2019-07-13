@@ -1,8 +1,8 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from simulate import run_elo_simulation
 from utility import random_chars, dict_stringify, get_simulation_parameters
 import subprocess
-import settings
+import sys
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ does not block, and responds to client right away.
 runs simulation asyncly
 """
 
-success_message = """scheduled simulation: code --> %s, parameters --> %s"""
+success_message = """scheduled simulation: code --> %s, debug --> %s, parameters --> %s"""
 
 
 @app.route('/v1/simulate', methods=['GET', 'POST'])
@@ -23,15 +23,18 @@ def simulate():
     """ simulator end point, normally this should be receiving
     configurations in request payload, but not a requirement for now
     """
+    params = request.args
+    debug = params.get('debug', False)
     global simulator_process
     if simulator_process and simulator_process.poll() is None:
         return respond_with_message('simulator already running', 503)
     else:
         session_code = random_chars(8)
         simulator_process = subprocess.Popen(
-            [settings.python_path, 'simulate.py', '--debug', '--session_code', session_code])
+            [sys.executable, 'simulate.py', '--session_code', session_code,
+             '--debug' if debug else ''])
         params_str = dict_stringify(get_simulation_parameters())
-        return respond_with_message(success_message % (session_code, params_str), 200)
+        return respond_with_message(success_message % (session_code, debug, params_str), 200)
 
 
 def respond_with_message(message: str, response_code):

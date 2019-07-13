@@ -2,6 +2,7 @@ from peewee import *
 import datetime
 from high_frequency_trading.hft.utility import serialize_in_memo_model
 from .conf import psql_db
+from collections import deque
 import time
 import logging
 
@@ -15,10 +16,25 @@ def get_db_model(entity_tag):
         raise Exception('invalid model tag %s' % entity_tag)
 
 
-def write_to_db(model_class, **kwargs):
-# TODO: bulk inserts and queueing
-    model_class.create(**kwargs)
-
+def write_to_db(model_class, records=[], flush_on=('market_start', 'market_end'), 
+            ts_field_name='timestamp', **kwargs):
+    """
+    each record is a result of an event
+    batch inputs and bulk create objects
+    """
+    # keys should be identical in all dict for
+    # bulk inserts
+    clean_kwargs = {k: kwargs[k] if k in kwargs else None for k, v in model_class._meta.fields.items()} 
+    del clean_kwargs['id']
+    clean_kwargs[ts_field_name] = datetime.datetime.now()
+    records.append(clean_kwargs)
+    total_items = len(records)
+    if total_items >= 300 or kwargs.get('trigger_msg_type') in flush_on:
+        log.debug('insert %s records to db' % total_items)
+        model_class.insert_many(records).execute()
+        records.clear()
+            
+            
 
 def freeze_state():
     attr_name = 'model'
@@ -44,6 +60,7 @@ def freeze_state():
 class BaseModel(Model):
 
     timestamp = DateTimeField(default=datetime.datetime.now)
+    trigger_msg_type = CharField()
 
     class Meta:
         database = psql_db
@@ -60,7 +77,6 @@ class ELOMarket(BaseModel):
         'e_best_bid', 'e_best_offer', 'signed_volume', 'e_signed_volume')
 
     subsession_id = CharField()
-    trigger_msg_type = CharField()
     market_id = IntegerField()
     reference_price = IntegerField()
     best_bid = IntegerField()
@@ -89,7 +105,6 @@ class ELOAgent(BaseModel):
         'net_worth', 'cash', 'tax_paid', 'speed_cost')
 
     subsession_id = CharField()
-    trigger_msg_type = CharField()
     market_id = CharField(default=0)
     account_id = CharField()
     trader_model_name =  CharField()

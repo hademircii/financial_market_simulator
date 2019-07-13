@@ -80,9 +80,13 @@ class BaseMarketProxy:
     def handle_JSON(self):
         # this is not a requirement at this point
         pass
-
-        
-
+ 
+    @db.freeze_state()       
+    def close_session(self):
+        msg = utility.get_mock_market_msg({}, 'market_end')
+        event = self.event_cls('market close', msg)
+        self.model.handle_event(event)
+        return event
 
 
     

@@ -58,12 +58,24 @@ class BaseMarketAgent:
                 e_msg))
             self.exchange_connection.sendMessage(e_msg.translate(), e_msg.delay)
 
+    @db.freeze_state()
     def ready(self):
         if self.event_emitters:
             for em in self.event_emitters:
                 em.owner = self
                 em.register_events()
+        msg = utility.get_mock_market_msg(
+        utility.get_traders_initial_market_view(), 'market_start')
+        event = self.event_cls('initial state', msg)
+        self.model.handle_event(event)
+        return event
 
+    @db.freeze_state()       
     def close_session(self):
-        pass
+        msg = utility.get_mock_market_msg({}, 'market_end')
+        event = self.event_cls('market close', msg)
+        self.model.handle_event(event)
+        log.info('agent %s:%s --> closing session %s..' % (
+            self.account_id, self.typecode, self.session_id))
+        return event
 

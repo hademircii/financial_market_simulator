@@ -1,7 +1,7 @@
 from twisted.internet import protocol, reactor
 from high_frequency_trading.hft.incoming_message import IncomingOuchMessage
 from utility import incoming_message_defaults
-from high_frequency_trading.exchange_server.OuchServer import ouch_messages
+from exchange_server.OuchServer import ouch_messages
 from high_frequency_trading.hft.exchange import OUCH
 from high_frequency_trading.hft.exchange_message import ResetMessage
 import random

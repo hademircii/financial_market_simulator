@@ -1,6 +1,7 @@
 # elo simulation
 import sys
-from honcho.manager import Manager
+import subprocess
+import shlex
 import settings
 import configargparse
 from utility import (
@@ -11,6 +12,7 @@ from db.db_commands import export_session
 import logging
 
 log = logging.getLogger(__name__)
+
 
 # assume matching engines are listening
 p = configargparse.getArgParser()
@@ -42,13 +44,13 @@ def run_elo_simulation(
     session_dur = get_simulation_parameters()['session_duration']
     # (cmd, process_name)
     focal_proxy = 'run_proxy.py --ouch_port {0} --json_port {1} \
-            --session_code {2} --exchange_port {3} --tag focal'.format(
+            --session_code {2} --exchange_port {3} --session_duration {4} --tag focal'.format(
                 p['focal_proxy_ouch_port'], p['focal_proxy_json_port'],
-                session_code, p['focal_exchange_port']), 'focal_proxy'
-    external_proxy = 'run_proxy.py --debug --ouch_port {0} --json_port {1} \
-        --session_code {2} --exchange_port {3} --tag external'.format(
+                session_code, p['focal_exchange_port'], session_dur), 'focal_proxy'
+    external_proxy = 'run_proxy.py --ouch_port {0} --json_port {1} \
+        --session_code {2} --exchange_port {3} --session_duration {4} --tag external'.format(
             p['external_proxy_ouch_port'], p['external_proxy_json_port'],
-            session_code, p['external_exchange_port']), 'external_proxy'
+            session_code, p['external_exchange_port'], session_dur), 'external_proxy'
 
     rabbit_agent_focal = 'run_agent.py --session_duration {0} --exchange_ouch_port {1} \
         --session_code {2} --agent_type rabbit --config_num {3} --random_seed {4}'.format(
@@ -70,16 +72,16 @@ def run_elo_simulation(
                 session_code, i), 'dynamic_agent_{0}'.format(i)
         interactive_agents.append(agent_i)
 
-    m = Manager()
+    processes = {}
     for pair in [focal_proxy, external_proxy, rabbit_agent_focal,
                  rabbit_agent_external] + interactive_agents:
         cmd, process_tag = pair[0], pair[1]
         if options.debug:
             cmd += ' --debug'
-        cmd = settings.python_path + ' ' + cmd
-        m.add_process(process_tag, cmd)
-    m.loop()
-    if m.returncode == 0 and session_results_ready(session_code):
+        cmd = sys.executable + ' ' + cmd
+        processes[process_tag] = subprocess.Popen(shlex.split(cmd))
+    exit_codes = [p.wait() for p in processes.values()]
+    if sum(exit_codes) == 0 and session_results_ready(session_code):
         export_session(session_code)
         log.info('session %s complete!' % session_code)
 

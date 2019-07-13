@@ -1,5 +1,5 @@
 import configargparse
-from twisted.internet import reactor
+from twisted.internet import reactor, task
 import draw
 import settings
 from discrete_event_emitter import *
@@ -8,7 +8,7 @@ from agents.dynamic_agent import DynamicAgent
 from protocols.ouch_trade_client_protocol import OUCHClientFactory
 from protocols.json_line_protocol import JSONLineClientFactory
 from utility import (
-    random_chars, generate_account_id, stop_running_reactor, get_simulation_parameters)
+    random_chars, generate_account_id, get_simulation_parameters)
 import logging as log
 
 
@@ -62,8 +62,9 @@ def main(account_id):
             JSONLineClientFactory('external', agent))
 
     agent.ready()
-    reactor.callLater(session_duration, agent.close_session)
-    reactor.callLater(session_duration, stop_running_reactor, reactor)
+
+    d = task.deferLater(reactor, session_duration, agent.close_session)
+    d.addCallback(lambda _ : reactor.stop())
     reactor.run()
 
 if __name__ == '__main__':
