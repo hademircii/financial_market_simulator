@@ -2,6 +2,7 @@ import numpy as np
 from high_frequency_trading.hft.equations import price_grid
 import utility
 import logging
+import settings
 
 log = logging.getLogger(__name__)
 
@@ -116,13 +117,12 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
     first draws fundamental value series or read from a csv file
     then pipes this sequence to random order producer function
     """
-    fundamental_value_file_path = conf['fundamental_value_file']
-    if fundamental_value_file_path:
-        fundamental_values = utility.read_fundamental_values_from_csv(
-                                fundamental_value_file_path)
+    if conf['read_fundamental_values_from_file']:
+        path = settings.fundamental_values_config_path
+        fundamental_values = utility.read_fundamental_values_from_csv(path)
         fundamental_values = np.array(fundamental_values)
         log.info(
-            'read fundamental value sequence from %s.' % fundamental_value_file_path)
+            'read fundamental value sequence from %s.' % path)
     else:
         with ContextSeed(seed):
             fundamental_values = _elo_asset_value_arr(
@@ -133,7 +133,7 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
                 conf['lambdaJ'])
             log.info('drew fundamental value sequence, initial price %s'
                      '%s jumps per second.' % (
-                        conf['intial_price'],
+                        conf['initial_price'],
                         round(len(fundamental_values) / period_length, 2)))
     random_orders = elo_random_order_sequence(
         fundamental_values, 

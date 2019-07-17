@@ -16,15 +16,17 @@ default_simulation_parameters = {
     'tax_rate': 0.1,
     'k_reference_price': 0.01,
     'k_signed_volume': 0.5,
-    'fundamental_value_file': False
+    'read_fundamental_values_from_file': False
 }
 
 logs_dir = './logs/'
 results_export_path = './exports/{session_id}_{record_class}_accessed_{timestamp}.csv'
 params_export_path = './exports/{session_id}_parameters_accessed_{timestamp}.txt'
 
+
 custom_config_path = './parameters.yaml'
 agent_event_config_path = './agent_state_configs.csv'
+fundamental_values_config_path = './fundamental_values.csv'
 
 ports = {
     'focal_exchange_port': 9001,

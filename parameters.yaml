@@ -3,7 +3,7 @@ initial_price: 1000000
 
 fundamental_value_noise_mean: 0
 fundamental_value_noise_std: 14000
-fundamental_value_file: 'fundamental_values.csv'
+read_fundamental_values_from_file: True
 
 exogenous_order_price_noise_mean: 0
 exogenous_order_price_noise_std: 12000
