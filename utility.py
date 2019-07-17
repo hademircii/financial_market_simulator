@@ -7,6 +7,7 @@ import settings
 import string
 import csv
 import logging
+import datetime
 import yaml
 
 log = logging.getLogger(__name__)
@@ -22,6 +23,16 @@ def get_simulation_parameters():
             if k in merged_parameters:
                 merged_parameters[k] = v
     return merged_parameters
+
+
+def export_session_parameters(session_id):
+    params = get_simulation_parameters()
+    timestamp = datetime.datetime.now()
+    path = settings.params_export_path.format(session_id=session_id, 
+        timestamp=timestamp)
+    str_params = '\n'.join('{0}:{1}'.format(k, v) for k, v in params.items())
+    with open(path, 'w') as f:
+        f.write(str_params)
 
 
 def get_agent_state_config(config_number=None):
@@ -66,7 +77,8 @@ def random_chars(num_chars):
 
 
 def transform_incoming_message(source, message, external_market_state=None):
-    """ this handles mismatches between the otree app and simulator"""
+    """ this handles key mismatches in messages
+        between the otree app and simulator"""
     def transform_external_proxy_msg(message):
         """
         traders in elo environment treat one of the
@@ -111,8 +123,20 @@ def extract_firm_from_message(message):
         return message.order_token[:4]
 
 
-def read_agent_events_from_csv(path):
+def read_fundamental_values_from_csv(path):
     """ well this code sucks but it is very specific to elo"""
+    with open(path, 'r') as f:
+        reader = csv.reader(f)
+        next(reader)  # first row is column names
+        rows = list(reader)
+    # assume values are valid
+    rows = [(float(row[0]), int(row[1])) for row in rows]
+    return rows
+
+def read_agent_events_from_csv(path):
+    """ some obvious duplication here, but it is good to keep them separate
+        both are very custom to context
+    """
     with open(path, 'r') as f:
         reader = csv.reader(f)
         next(reader)  # first row is column names

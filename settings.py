@@ -5,19 +5,23 @@ default_simulation_parameters = {
     # configs for elo simulation
     'session_duration': 10,
     'initial_price': 1000000,
-    'noise_mean': 0,
-    'noise_std': 20000,
+    'fundamental_value_noise_mean': 0,
+    'fundamental_value_noise_std': 20000,
+    'exogenous_order_price_noise_mean': 0,
+    'exogenous_order_price_noise_std': 12000,
     'bid_ask_offset': 50,
     'lambdaJ': 0.5,
     'lambdaI': 1,
     'time_in_force': 5,
     'tax_rate': 0.1,
     'k_reference_price': 0.01,
-    'k_signed_volume': 0.5
+    'k_signed_volume': 0.5,
+    'fundamental_value_file': False
 }
 
 logs_dir = './logs/'
 results_export_path = './exports/{session_id}_{record_class}_accessed_{timestamp}.csv'
+params_export_path = './exports/{session_id}_parameters_accessed_{timestamp}.txt'
 
 custom_config_path = './parameters.yaml'
 agent_event_config_path = './agent_state_configs.csv'

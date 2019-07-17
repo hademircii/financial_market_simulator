@@ -35,7 +35,6 @@ def write_to_db(model_class, records=[], flush_on=('market_start', 'market_end')
         records.clear()
             
             
-
 def freeze_state():
     attr_name = 'model'
 

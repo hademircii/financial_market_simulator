@@ -5,7 +5,8 @@ import shlex
 import settings
 import configargparse
 from utility import (
-    random_chars, get_interactive_agent_count, get_simulation_parameters)
+    random_chars, get_interactive_agent_count, 
+    get_simulation_parameters, export_session_parameters)
 import numpy as np
 from db.db import session_results_ready
 from db.db_commands import export_session
@@ -83,6 +84,7 @@ def run_elo_simulation(
     exit_codes = [p.wait() for p in processes.values()]
     if sum(exit_codes) == 0 and session_results_ready(session_code):
         export_session(session_code)
+        export_session_parameters(session_code)
         log.info('session %s complete!' % session_code)
 
 

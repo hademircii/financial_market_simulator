@@ -1,11 +1,18 @@
 session_duration: 10
 initial_price: 1000000
-noise_mean: 0
-noise_std: 12000
-bid_ask_offset: 50
+
+fundamental_value_noise_mean: 0
+fundamental_value_noise_std: 14000
+fundamental_value_file: 'fundamental_values.csv'
+
+exogenous_order_price_noise_mean: 0
+exogenous_order_price_noise_std: 12000
+bid_ask_offset: 500
+time_in_force: 5
+
 lambdaJ: 0.5
 lambdaI: 0.1
-time_in_force: 5
+
 tax_rate: 0.1
 k_reference_price: 0.01
 k_signed_volume: 0.5
