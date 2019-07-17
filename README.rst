@@ -4,6 +4,7 @@ installation:
 =============
 
 this is tested with python 3.5 - 3.6 - 3.7.
+
 postgres database must be installed.
 follow this `link`_ for instructions.
 
@@ -38,7 +39,7 @@ create an user, database and grant permissions to user
 
 ::
 
-  CREATE DATABASE simulations;
+  CREATE DATABASE fimsim;
   CREATE USER simulation_user WITH PASSWORD 'somepassword';
   GRANT ALL PRIVILEGES ON DATABASE simulations TO simulation_user;
 
@@ -63,7 +64,7 @@ download and clone this repo
 
     git clone https://github.com/hademircii/financial_market_simulator.git
   
-cd into the directory you just downlaoded.
+cd into the directory you just downloaded.
   
 ::
   
@@ -84,45 +85,28 @@ install dependencies
     
     
 from the root directory
-run
+start an interactive python session
 
 ::
 
   python 
   
-this will start an interactive python session
+and create the relevant tables in the db.
 
 ::
 
   from db import db_commands
   db_commands.create_tables()
 
-this will create the relevant tables in the db.
- 
+**matching engines**
+
 start two more shells
 and cd into the exchange_server directory in the repo
 you just downloaded.
-in the first shell, run:
- 
-::
- 
-    python3 run_exchange_server.py --host 0.0.0.0 --port 9001 --debug --mechanism cda
-   
-in the second shell, run:
- 
-::
- 
-    python3 run_exchange_server.py --host 0.0.0.0 --port 9002 --debug --mechanism cda
-    
-you just started two matching engine processes listening on port 9001 and 9002
-
-
-Session-wide static parameters are defined in file parameters.yaml  edit it accordingly.
-Dynamic parameters (agent's sensitivities, techonolgy subscription) is configured by editing agent_state_configs.csv.
+follow the `instructions`_ here to run an matching engine instance, run two matching engines in separate shells on ports 9001 and 9002 with the CDA format (if you need different ports, make sure to edit settings.py in the root directory accordingly).
 
 usage:
 =======
-after editing the files to reflect desired configuration.
  
 ::
  
@@ -130,13 +114,18 @@ after editing the files to reflect desired configuration.
   
 this will wake up the simulator engine.
 
-now, go to a browser of your choice and visit http://localhost:5000/v1/simulate . you will get a response message which includes
+session-wide static parameters are defined in file parameters.yaml  edit it accordingly.
+
+dynamic parameters (agent's sensitivities, technology subscription) is configured by editing agent_state_configs.csv.
+
+now, go to a browser of your choice and visit http://localhost:5000/v1/simulate (or http://localhost:5000/v1/simulate?debug=True to toggle debug mode). you will get a response message which includes
 a session id and parameters, note down this session code since output files will be tagged with this identifier.
 this will trigger a simulation session, which after completion will dump two files in the exports directory.
+
 next you need to upload these files to analytics service to do visual inspection.
 it is at: http://167.99.111.185:8888 ; next steps are located in README file in the home directory of the notebook server there.
 
 
    
 .. _link: https://www.postgresql.org/download/
-  
+.. _instructions: https://github.com/Leeps-Lab/exchange_server/blob/master/README.rst
