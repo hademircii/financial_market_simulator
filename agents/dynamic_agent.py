@@ -30,7 +30,7 @@ class DynamicAgent(BaseMarketAgent):
         super().__init__(session_id, *args, **kwargs)
         self.model = self.trader_model_cls(
             self.session_id, 0, self.id, self.id, 'automated', '', 0, 
-            firm=self.account_id)
+            firm=self.account_id, **kwargs)
         # the agent expects an external feed message
         # with fields e_best_bid e_best_offer e_signed_volume
         # so I need a hack as market proxies always send those 

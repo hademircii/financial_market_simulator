@@ -25,6 +25,13 @@ def get_simulation_parameters():
     return merged_parameters
 
 
+def get_elo_agent_parameters(
+        parameter_names=('a_x_multiplier', 'a_y_multiplier', 'speed_unit_cost')
+    ):
+    all_parameters = get_simulation_parameters()
+    return {k: all_parameters[k] for k in parameter_names}
+
+
 def export_session_parameters(session_id):
     params = get_simulation_parameters()
     timestamp = datetime.datetime.now()

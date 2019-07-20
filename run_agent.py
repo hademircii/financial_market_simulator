@@ -32,6 +32,7 @@ options, args = p.parse_known_args()
 def main(account_id):
     agent_type = options.agent_type
     session_duration = options.session_duration
+    agent_parameters = {}
     if agent_type == 'rabbit':
         random_orders = draw.elo_draw(
             session_duration, get_simulation_parameters(),
@@ -44,10 +45,11 @@ def main(account_id):
         event_emitters = [ELOSliderChangeEmitter(source_data=events['slider']), 
             ELOSpeedChangeEmitter(source_data=events['speed'])]
         agent_cls = DynamicAgent
+        agent_parameters.update(utility.get_elo_agent_parameters())
  
     agent = agent_cls(options.session_code, options.exchange_host, 
         options.exchange_ouch_port, event_emitters=event_emitters, 
-        account_id=account_id)
+        account_id=account_id, **agent_parameters)
 
     reactor.connectTCP(options.exchange_host, options.exchange_ouch_port,
         OUCHClientFactory(agent))

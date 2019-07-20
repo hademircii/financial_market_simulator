@@ -26,7 +26,7 @@ class PaceMakerAgent(BaseMarketAgent):
     def __init__(self, session_id, *args, **kwargs):
         super().__init__(session_id, *args,  **kwargs)
         self.model = self.trader_model_cls(self.session_id, 0, 1, 0, 'investor', 
-            0, 0, firm=self.account_id)
+            0, 0, firm=self.account_id, **kwargs)
         self.exchange_connection = None
 
     @db.freeze_state() 

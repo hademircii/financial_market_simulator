@@ -16,3 +16,8 @@ lambdaI: 0.1
 tax_rate: 0.1
 k_reference_price: 0.01
 k_signed_volume: 0.5
+
+a_x_multiplier: 4   # a_x <-> signed volume
+a_y_multiplier: 2   # a_y <-> inventory
+
+speed_unit_cost: 20000  # per second

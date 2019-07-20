@@ -18,7 +18,7 @@ class BaseMarketAgent:
     typecode = ''
 
     def __init__(self, session_id, *trader_model_args, account_id=None, 
-                    event_emitters=None):
+                    event_emitters=None, **kwargs):
         self.id = next(self._ids)
         self.session_id = session_id
         self.model = None   # trader model plugs here..

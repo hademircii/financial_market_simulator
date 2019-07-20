@@ -9,14 +9,17 @@ default_simulation_parameters = {
     'fundamental_value_noise_std': 20000,
     'exogenous_order_price_noise_mean': 0,
     'exogenous_order_price_noise_std': 12000,
-    'bid_ask_offset': 50,
+    'bid_ask_offset': 1000000,
     'lambdaJ': 0.5,
     'lambdaI': 1,
     'time_in_force': 5,
     'tax_rate': 0.1,
     'k_reference_price': 0.01,
     'k_signed_volume': 0.5,
-    'read_fundamental_values_from_file': False
+    'read_fundamental_values_from_file': False,
+    'a_x_multiplier': 1,   # a_x <-> signed volume
+    'a_y_multiplier': 1,   # a_y <-> inventory
+    'speed_unit_cost': 10000  # per second
 }
 
 logs_dir = './logs/'
