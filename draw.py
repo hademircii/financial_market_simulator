@@ -96,7 +96,7 @@ def elo_random_order_sequence(
     order_directions = np.random.binomial(1, buy_prob, orders_size)
     noise_by_order_side = np.vectorize(
         lambda x: np.random.normal(loc_noise + bid_ask_offset, scale_noise
-            ) if x is 0 else np.random.normal(loc_noise - bid_ask_offset, scale_noise))
+            ) if x == 0 else np.random.normal(loc_noise - bid_ask_offset, scale_noise))
     noise_around_asset_value = noise_by_order_side(order_directions)
     order_prices = (
         asset_value_asof + noise_around_asset_value * (2 * order_directions - 1)
@@ -120,6 +120,7 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
     if conf['read_fundamental_values_from_file']:
         path = settings.fundamental_values_config_path
         fundamental_values = utility.read_fundamental_values_from_csv(path)
+        fundamental_values.insert(0, (0, conf['initial_price']))
         fundamental_values = np.array(fundamental_values)
         log.info(
             'read fundamental value sequence from %s.' % path)
@@ -153,7 +154,9 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
 
 
 if __name__ == '__main__':
-    print(elo_draw(20, utility.get_simulation_parameters()))
+    d = elo_draw(20, utility.get_simulation_parameters())
+    for r in d:
+        print(r)
 
 
      
