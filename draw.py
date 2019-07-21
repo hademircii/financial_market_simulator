@@ -152,8 +152,8 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
             random_orders.shape[0], 
             period_length, 
             round(random_orders.shape[0] / period_length, 2)))
-    log.info('random order price fundamental value pairs: %s' % (
-                ', '.join('{0}:{1}'.format(row[1], row[2]) for 
+    log.info('random orders (format: [fundamental price]:[order price]:[order direction]:[time in force]): %s' % (
+                ', '.join('{0}:{1}:{2}:{3}'.format(row[1], row[2], row[3], row[4]) for 
                             row in random_orders)))
     return random_orders
 
