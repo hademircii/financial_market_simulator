@@ -90,7 +90,8 @@ def elo_random_order_sequence(
     orders_size = np.random.poisson(lam=(1 / lambdaI) * period_length, size=1)
     order_times = draw_arrival_times(
         orders_size, period_length, low=0.0, high=period_length)
-    asset_value_jump_times, asset_values = asset_value_arr[0], asset_value_arr[1]
+    unstacked_asset_values = np.swapaxes(asset_value_arr, 0, 1)
+    asset_value_jump_times, asset_values = unstacked_asset_values[0], unstacked_asset_values[1]
     asset_value_indexes = asof(asset_value_jump_times, order_times)
     asset_value_asof = asset_values[asset_value_indexes]
     order_directions = np.random.binomial(1, buy_prob, orders_size)
@@ -122,8 +123,7 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
         fundamental_values = utility.read_fundamental_values_from_csv(path)
         fundamental_values.insert(0, (0, conf['initial_price']))
         fundamental_values = np.array(fundamental_values)
-        log.info(
-            'read fundamental value sequence from %s.' % path)
+        log.info('read fundamental value sequence from %s.' % path)
     else:
         with ContextSeed(seed):
             fundamental_values = _elo_asset_value_arr(
@@ -136,6 +136,8 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
                      '%s jumps per second.' % (
                         conf['initial_price'],
                         round(len(fundamental_values) / period_length, 2)))
+    log.info('fundamental values: %s' % (', '.join('{0}:{1}'.format(t, v) 
+                                            for t, v in fundamental_values)))
     random_orders = elo_random_order_sequence(
         fundamental_values, 
         period_length, 
@@ -150,6 +152,9 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
             random_orders.shape[0], 
             period_length, 
             round(random_orders.shape[0] / period_length, 2)))
+    log.info('random order price fundamental value pairs: %s' % (
+                ', '.join('{0}:{1}'.format(row[1], row[2]) for 
+                            row in random_orders)))
     return random_orders
 
 
