@@ -33,10 +33,8 @@ def simulate():
         session_code = random_chars(8)
         note = ''
         payload = request.json
-        print(payload)
         if payload:
             note = payload.get('note')
-        print(note)
         simulator_process = subprocess.Popen(
             [sys.executable, 'simulate.py', '--session_code', session_code,
              '--note', note, '--debug' if debug else ''])
