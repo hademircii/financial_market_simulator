@@ -15,7 +15,8 @@ does not block, and responds to client right away.
 runs simulation asyncly
 """
 
-success_message = """scheduled simulation: code --> %s, debug --> %s, parameters --> %s"""
+success_message = 'scheduled simulation: code --> %s, debug --> %s, note --> %s, \
+parameters --> %s'
 
 
 @app.route('/v1/simulate', methods=['GET', 'POST'])
@@ -30,11 +31,18 @@ def simulate():
         return respond_with_message('simulator already running', 503)
     else:
         session_code = random_chars(8)
+        note = ''
+        payload = request.json
+        print(payload)
+        if payload:
+            note = payload.get('note')
+        print(note)
         simulator_process = subprocess.Popen(
             [sys.executable, 'simulate.py', '--session_code', session_code,
-             '--debug' if debug else ''])
+             '--note', note, '--debug' if debug else ''])
         params_str = dict_stringify(get_simulation_parameters())
-        return respond_with_message(success_message % (session_code, debug, params_str), 200)
+        return respond_with_message(success_message % (
+                                    session_code, debug, note, params_str), 200)
 
 
 def respond_with_message(message: str, response_code):

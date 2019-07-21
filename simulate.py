@@ -6,7 +6,7 @@ import settings
 import configargparse
 from utility import (
     random_chars, get_interactive_agent_count, 
-    get_simulation_parameters, export_session_parameters)
+    get_simulation_parameters, export_session_report)
 import numpy as np
 from db.db import session_results_ready
 from db.db_commands import export_session
@@ -19,6 +19,7 @@ log = logging.getLogger(__name__)
 p = configargparse.getArgParser()
 p.add('--debug', action='store_true')
 p.add('--session_code', default=random_chars(8), type=str)
+p.add('--note', type=str)
 options, args = p.parse_known_args()
 
 
@@ -84,7 +85,7 @@ def run_elo_simulation(
     exit_codes = [p.wait() for p in processes.values()]
     if sum(exit_codes) == 0 and session_results_ready(session_code):
         export_session(session_code)
-        export_session_parameters(session_code)
+        export_session_report(session_code, options.note)
         log.info('session %s complete!' % session_code)
 
 

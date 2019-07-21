@@ -32,14 +32,15 @@ def get_elo_agent_parameters(
     return {k: all_parameters[k] for k in parameter_names}
 
 
-def export_session_parameters(session_id):
+def export_session_report(session_id: str, session_note: str):
     params = get_simulation_parameters()
     timestamp = datetime.datetime.now()
     path = settings.params_export_path.format(session_id=session_id, 
         timestamp=timestamp)
-    str_params = '\n'.join('{0}:{1}'.format(k, v) for k, v in params.items())
+    str_params = '\n\t'.join('{0}:{1}'.format(k, v) for k, v in params.items())
+    report = 'session note:\n    %s\nparameters:\n\t%s' % (session_note, str_params)
     with open(path, 'w') as f:
-        f.write(str_params)
+        f.write(report)
 
 
 def get_agent_state_config(config_number=None):

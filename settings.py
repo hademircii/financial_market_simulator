@@ -24,7 +24,7 @@ default_simulation_parameters = {
 
 logs_dir = './logs/'
 results_export_path = './exports/{session_id}_{record_class}_accessed_{timestamp}.csv'
-params_export_path = './exports/{session_id}_parameters_accessed_{timestamp}.txt'
+params_export_path = './exports/{session_id}_report_{timestamp}.txt'
 
 
 custom_config_path = './parameters.yaml'
