@@ -112,7 +112,8 @@ def elo_random_order_sequence(
             orders_tif))
     return stacked
 
-def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
+def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8),
+        config_num=0):
     """
     generates random order sequence as specified in ELO market research plan
     first draws fundamental value series or read from a csv file
@@ -144,7 +145,7 @@ def elo_draw(period_length, conf: dict, seed=np.random.randint(0, high=2 ** 8)):
         conf['exogenous_order_price_noise_mean'], 
         conf['exogenous_order_price_noise_std'], 
         conf['bid_ask_offset'],
-        conf['lambdaI'], 
+        conf['lambdaI'][config_num],    # so rabbits differ in arrival rate..
         conf['time_in_force'])
     random_orders = np.swapaxes(random_orders, 0, 1)
     log.info(

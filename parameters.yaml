@@ -11,10 +11,10 @@ bid_ask_offset: 500
 time_in_force: 5
 
 lambdaJ: 0.5
-lambdaI: 0.1
+lambdaI: [0.1, 0.5]   # index 0 is focal market
 
 tax_rate: 0.1
-k_reference_price: 0.01
+k_reference_price: 0.01  # discount rate
 k_signed_volume: 0.5
 
 a_x_multiplier: 4   # a_x <-> signed volume

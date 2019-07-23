@@ -61,7 +61,7 @@ def run_elo_simulation(
     rabbit_agent_external = 'run_agent.py --session_duration {0} --exchange_ouch_port {1} \
         --session_code {2} --agent_type rabbit --config_num {3} --random_seed {4}'.format(
             session_dur, p['external_proxy_ouch_port'],
-            session_code, 0, random_seed), 'rabbit_agent_external'
+            session_code, 1, random_seed), 'rabbit_agent_external'
 
     interactive_agents = []
     for i in range(get_interactive_agent_count()):
