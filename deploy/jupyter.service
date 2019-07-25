@@ -1,0 +1,13 @@
+Description=Jupyter Notebook for Simulator
+
+[Service]
+User=leeps-lab
+Group=leeps-lab
+Environment=PATH=/home/leeps-lab/environments/financial_market_simulator_env/bin/:$PATH
+WorkingDirectory=/home/leeps-lab/financial_market_simulator/app
+ExecStart=/home/leeps-lab/environments/financial_market_simulator_env/bin/jupyter notebook --no-browser --ip=0.0.0.0
+ExecStop=/bin/kill -INT $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

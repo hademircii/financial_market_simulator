@@ -15,13 +15,11 @@ p.add('--session_duration', type=int,
       help='session duration in seconds')
 p.add('--debug', action='store_true')
 p.add('--session_code', default=random_chars(8))
-p.add('--host', default='127.0.0.1')
 p.add('--ouch_port', default=9201, type=int,
       help='port to listen to OUCH messages on')
 p.add('--json_port', default=9202, type=int,
       help='port to listen to JSON messages on')
-p.add('--exchange_host', default='127.0.0.1',
-      help='Address of the matching engine to proxy')
+p.add('--exchange_host', help='Address of the matching engine to proxy')
 p.add('--exchange_port', default=9001, type=int)
 p.add('--tag', choices=['focal', 'external'], type=str)
 options, args = p.parse_known_args()

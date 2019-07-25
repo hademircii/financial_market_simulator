@@ -2,19 +2,19 @@ session_duration: 10
 initial_price: 1000000
 
 fundamental_value_noise_mean: 0
-fundamental_value_noise_std: 14000
+fundamental_value_noise_std: 1400
 read_fundamental_values_from_file: True
 
 exogenous_order_price_noise_mean: 0
 exogenous_order_price_noise_std: 12000
-bid_ask_offset: 500
-time_in_force: 5
+bid_ask_offset: 10000
+time_in_force: 7
 
 lambdaJ: 0.5
-lambdaI: [0.1, 0.5]   # index 0 is focal market
+lambdaI: [0.1, 0.1]  # first element: focal market, second element: external market
 
 tax_rate: 0.1
-k_reference_price: 0.01  # discount rate
+k_reference_price: 0.2 # discount rate (half life)
 k_signed_volume: 0.5
 
 a_x_multiplier: 4   # a_x <-> signed volume

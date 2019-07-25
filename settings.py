@@ -1,3 +1,5 @@
+import os
+
 MIN_BID = 0
 MAX_ASK = 2147483647
 
@@ -22,14 +24,16 @@ default_simulation_parameters = {
     'speed_unit_cost': 10000  # per second
 }
 
-logs_dir = './logs/'
-results_export_path = './exports/{session_id}_{record_class}_accessed_{timestamp}.csv'
-params_export_path = './exports/{session_id}_report_{timestamp}.txt'
+logs_dir = './app/logs/'
+results_export_path = './app/data/{session_id}_{record_class}_accessed_{timestamp}.csv'
+params_export_path = './app/data/{session_id}_report_{timestamp}.txt'
 
+custom_config_path = './app/simulator_configs/parameters.yaml'
+agent_event_config_path = './app/simulator_configs/agent_state_configs.csv'
+fundamental_values_config_path = './app/simulator_configs/fundamental_values.csv'
 
-custom_config_path = './parameters.yaml'
-agent_event_config_path = './agent_state_configs.csv'
-fundamental_values_config_path = './fundamental_values.csv'
+focal_exchange_host = os.getenv('FOCAL_EXCHANGE_HOST', 'localhost')
+external_exchange_host = os.getenv('EXTERNAL_EXCHANGE_HOST', 'localhost')
 
 ports = {
     'focal_exchange_port': 9001,

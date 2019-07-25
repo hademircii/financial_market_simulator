@@ -1,8 +1,8 @@
 from peewee import PostgresqlDatabase
 import os
 
-db_name = 'fimsim'
-host = 'localhost'
+db_name = os.getenv('DBNAME', 'fimsim')
+host = os.getenv('DBHOST', 'localhost')
 db_user = os.getenv('DBUSER')
 db_password = os.getenv('DBPASSWORD')
 
