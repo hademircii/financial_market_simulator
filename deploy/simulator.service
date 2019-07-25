@@ -7,7 +7,7 @@ Group=leeps-lab
 Environment=DBUSER=leeps
 Environment=DBPASSWORD=mydbpassword
 WorkingDirectory=/home/leeps-lab/financial_market_simulator
-ExecStart=/home/leeps-lab/environments/financial_market_simulator_env/bin/python run_web_api.py
+ExecStart=/home/leeps-lab/financial_market_simulator_env/bin/python run_web_api.py
 ExecStop=/bin/kill -INT $MAINPID
 Restart=always
 
