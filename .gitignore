@@ -15,5 +15,6 @@ __pycache__/
 *.rdb
 *.log
 *.vscode
+*.png
 reset*
 !session_config/**
