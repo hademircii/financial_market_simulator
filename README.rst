@@ -76,6 +76,20 @@ download and update submodules
     
     git submodule init
     git submodule update
+
+cd into high_frequency_trading directory and do a similar operation.
+
+::
+
+    cd high_frequency_trading
+    git submodule init
+    git submodule update
+
+and go back to the root directory.
+
+::
+
+   cd ..
  
 install dependencies
  
@@ -122,10 +136,18 @@ now, go to a browser of your choice and visit http://localhost:5000/v1/simulate 
 a session id and parameters, note down this session code since output files will be tagged with this identifier.
 this will trigger a simulation session, which after completion will dump two files in the exports directory.
 
-next you need to upload these files to analytics service to do visual inspection.
-it is at: http://167.99.111.185:8888 ; next steps are located in README file in the home directory of the notebook server there.
+there is a jupyter notebook front-end that pairs with the simulator. This gives you a nice interface to interact with and configure the simulator, visualize and inspect session results.
 
+then cd into /app directory and start the notebook server.
 
+if you would like to use this tool;
+
+::
+
+  cd app
+  jupyter notebook
+
+and go to http://localhost:8888, and check out the 'simulator_HOWTO' file.
    
 .. _link: https://www.postgresql.org/download/
 .. _instructions: https://github.com/Leeps-Lab/exchange_server/blob/master/README.rst
