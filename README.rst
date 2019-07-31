@@ -138,8 +138,6 @@ this will trigger a simulation session, which after completion will dump two fil
 
 there is a jupyter notebook front-end that pairs with the simulator. This gives you a nice interface to interact with and configure the simulator, visualize and inspect session results.
 
-then cd into /app directory and start the notebook server.
-
 if you would like to use this tool;
 
 ::
