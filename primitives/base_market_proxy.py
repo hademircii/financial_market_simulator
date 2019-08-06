@@ -70,10 +70,10 @@ class BaseMarketProxy:
             event = self.event_cls('OUCH', message)
             self.model.handle_event(event)
             while event.broadcast_msgs:
-                log.info('broadcast after handling %s event: %s' % (
-                    event.event_type, message))
                 broadcast_msg = event.broadcast_msgs.pop()
                 self.json_server_factory.broadcast(broadcast_msg)
+                log.info('broadcast after handling %s event: %s' % (
+                    event.event_type, broadcast_msg))
             return event
     
     @db.freeze_state()

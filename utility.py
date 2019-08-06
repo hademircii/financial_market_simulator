@@ -93,7 +93,7 @@ def transform_incoming_message(source, message, external_market_state=None):
         markets as external, format the message so
         correct handlers are activated on trader model
         """
-        if message['type'] == 'reference_price':
+        if message['type'] == 'reference_price_change':
             message['type'] = 'external_reference_price'
             return message
         if not external_market_state:
@@ -115,6 +115,8 @@ def transform_incoming_message(source, message, external_market_state=None):
         return message
     message['subsession_id'] = 0
     message['market_id'] = 0
+    if message['type'] == 'reference_price':
+        message['type'] = 'reference_price_change'
     if source == 'external':
         message = transform_external_proxy_msg(message)
     if message['type'] == 'bbo':

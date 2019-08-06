@@ -24,7 +24,7 @@ class DynamicAgent(BaseMarketAgent):
     typecode = 'elo_interactive_agent'
     handled_ouch_events = ('C', 'U', 'E', 'A')
     handled_external_market_events = ('external_feed_change', )
-    handled_focal_market_events = ('bbo_change', 'signed_volume_change', 'reference_price')
+    handled_focal_market_events = ('bbo_change', 'signed_volume_change', 'reference_price_change')
 
     def __init__(self, session_id, *args, **kwargs):
         super().__init__(session_id, *args, **kwargs)
