@@ -1,0 +1,8 @@
+ version: 2
+ jobs:
+   build:
+     docker:
+       - image: circleci/ruby:3.7.4
+     steps:
+       - checkout
+       - run: echo "testing circleci"
