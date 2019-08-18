@@ -97,12 +97,10 @@ def elo_random_order_sequence(
     asset_value_asof = asset_values[asset_value_indexes]
     order_directions = np.random.binomial(1, buy_prob, orders_size)
     noise_by_order_side = np.vectorize(
-        lambda x: np.random.normal(loc_noise + bid_ask_offset, scale_noise
-            ) if x == 0 else np.random.normal(loc_noise - bid_ask_offset, scale_noise))
+        lambda x: np.random.normal(loc_noise - bid_ask_offset, scale_noise
+            ) if x == 0 else np.random.normal(loc_noise + bid_ask_offset, scale_noise))
     noise_around_asset_value = noise_by_order_side(order_directions)
-    order_prices = (
-        asset_value_asof + noise_around_asset_value * (2 * order_directions - 1)
-    ).astype(int)
+    order_prices = (asset_value_asof + noise_around_asset_value).astype(int)
     grid = np.vectorize(price_grid)
     gridded_order_prices = grid(order_prices)
     orders_tif = np.full(orders_size, time_in_force).astype(int)
