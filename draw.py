@@ -32,15 +32,16 @@ def asof(a, b):
     (so the closest numpy gets to this is via searchsorted,
      which is still not the tool, wtf numpy folks ?)
     """
-    bound_index = 0
+    current_index = 0
+    last_a_index = len(a) - 1
     result = np.zeros(b.size, dtype=int)
     for ix, t in enumerate(b):
         try:
-            while t >= a[bound_index]:
-                bound_index += 1
+            while t >= a[current_index]:
+                current_index += 1
         except IndexError:
-            bound_index -= 1
-        result[ix] = bound_index
+            current_index = last_a_index + 1
+        result[ix] = current_index - 1
     return result 
          
 
