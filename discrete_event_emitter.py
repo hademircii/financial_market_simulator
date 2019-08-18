@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 class DiscreteEventEmitter:
     fieldnames = ()
-    fieldtypes = ()
+    fieldprocessors = ()
     name = ''
 
     def __init__(self, source_data):
@@ -22,7 +22,7 @@ class DiscreteEventEmitter:
             if self.has_changed(row):
                 arrival_time = float(row[0])
                 row_as_dict = {
-                    self.fieldnames[ix]: self.fieldtypes[ix](value) for ix, 
+                    self.fieldnames[ix]: self.fieldprocessors[ix](value) for ix, 
                         value in enumerate(row[1:])}
                 row_as_dict['type'] = self.name
                 reactor.callLater(arrival_time, self.owner.handle_discrete_event, row_as_dict)
@@ -34,12 +34,12 @@ class DiscreteEventEmitter:
 
 class RandomOrderEmitter(DiscreteEventEmitter):
     fieldnames = ('fundamental_price', 'price', 'buy_sell_indicator', 'time_in_force')
-    fieldtypes = (float, int, str, int)
+    fieldprocessors = (float, int, str, int)
     name = 'investor_arrivals'
 
 class ELOSpeedChangeEmitter(DiscreteEventEmitter):
     fieldnames = ('technology_on',)
-    fieldtypes = (bool, )
+    fieldprocessors = (lambda x: bool(int(x)), )
     name = 'speed_change'
 
     def __init__(self, *args, **kwargs):
@@ -51,7 +51,7 @@ class ELOSpeedChangeEmitter(DiscreteEventEmitter):
 
 class ELOSliderChangeEmitter(DiscreteEventEmitter):
     fieldnames = ('a_x', 'a_y', 'a_z')
-    fieldtypes = (float, float, float)
+    fieldprocessors = (float, float, float)
     name = 'slider'
 
     def __init__(self, *args, **kwargs):
