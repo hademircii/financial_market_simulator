@@ -18,7 +18,7 @@ daphne==0.14.3
 decorator==4.4.0
 defusedxml==0.6.0
 dj-database-url==0.4.1
-Django==1.11.2
+Django==1.11.28
 django-idmap==1.0.3
 django-redis==4.9.0
 django-vanilla-views==1.0.4
